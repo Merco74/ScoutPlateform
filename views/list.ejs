@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des <%= titre %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Liste des <%= titre %></h1>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Date de naissance</th>
+                    <th>Sexe</th>
+                    <th>Âge</th>
+                    <th>Adresse</th>
+                    <th>Ville</th>
+                    <th>Code postal</th>
+                    <th>Email</th>
+                    <th>Tél. domicile</th>
+                    <th>Tél. portable</th>
+                    <th>Contact urgence</th>
+                    <th>Contact urgence secondaire</th>
+                    <th>Autre club</th>
+                    <th>Parent</th>
+                    <th>Droit image</th>
+                    <th>Droit diffusion</th>
+                    <th>Transport</th>
+                    <th>Lu et approuvé droit</th>
+                    <th>Signature droit</th>
+                    <th>Vaccins obligatoires</th>
+                    <th>Vaccins recommandés</th>
+                    <th>Traitement médical</th>
+                    <th>Allergies alimentaires</th>
+                    <th>Allergies médicamenteuses</th>
+                    <th>Allergies autres</th>
+                    <th>Allergies détails</th>
+                    <th>Problème santé</th>
+                    <th>Problème santé détails</th>
+                    <th>Recommandations parents</th>
+                    <th>Responsable 1</th>
+                    <th>Responsable 2</th>
+                    <th>Médecin traitant</th>
+                    <th>Lu et approuvé sanitaire</th>
+                    <th>Signature sanitaire</th>
+                    <th>Lieu</th>
+                    <th>Date</th>
+                    <th>Remarque Section 1</th>
+                    <th>Remarque Section 2</th>
+                    <th>Remarque Section 3</th>
+                    <th>Remarque Section 4</th>
+                    <th>Remarque Section 5</th>
+                    <th>Scan vaccins</th>
+                    <th>Scan médicaments</th>
+                    <th>Recommandations médicales</th>
+                    <th>Autres documents</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% inscriptions.forEach(inscription => { %>
+                    <tr>
+                        <td><%= inscription.nom %></td>
+                        <td><%= inscription.prenom %></td>
+                        <td><%= new Date(inscription.dateNaissance).toLocaleDateString('fr-FR') %></td>
+                        <td><%= inscription.sexe %></td>
+                        <td><%= inscription.age %></td>
+                        <td><%= inscription.adresse %></td>
+                        <td><%= inscription.ville %></td>
+                        <td><%= inscription.codePostal %></td>
+                        <td><%= inscription.email %></td>
+                        <td><%= inscription.telDomicile || '-' %></td>
+                        <td><%= inscription.telPortable %></td>
+                        <td><%= inscription.contactUrgence.nom %> <%= inscription.contactUrgence.prenom %> (<%= inscription.contactUrgence.sexe %>, <%= inscription.contactUrgence.lien %>, <%= inscription.contactUrgence.telPortable %>)</td>
+                        <td><%= inscription.contactUrgenceSecondaire && inscription.contactUrgenceSecondaire.nom ? `${inscription.contactUrgenceSecondaire.nom} ${inscription.contactUrgenceSecondaire.prenom} (${inscription.contactUrgenceSecondaire.sexe || '-'}, ${inscription.contactUrgenceSecondaire.lien || '-'}, ${inscription.contactUrgenceSecondaire.telPortable || '-'})` : '-' %></td>
+                        <td><%= inscription.autreClub ? inscription.nomAutreClub || 'Oui' : 'Non' %></td>
+                        <td><%= inscription.parentNomPrenom %> (<%= inscription.parentEmail %>)</td>
+                        <td><%= inscription.droitImage ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.droitDiffusion ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.autorisationTransport ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.luEtApprouveDroitImageText %></td>
+                        <td><img src="<%= inscription.signatureDroitImage %>" alt="Signature Droit" style="max-width: 100px; max-height: 50px;"></td>
+                        <td><%= inscription.vaccinsObligatoires ? 'Oui' : 'No' %></td>
+                        <td><%= Object.entries(inscription.vaccinsRecommandes).map(([key, value]) => value ? `${key}: ${value}` : '').filter(v => v).join(', ') || '-' %></td>
+                        <td><%= inscription.traitementMedical ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.allergiesAlimentaires ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.allergiesMedicament ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.allergiesAutres ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.allergiesDetails || '-' %></td>
+                        <td><%= inscription.problemeSante ? 'Oui' : 'Non' %></td>
+                        <td><%= inscription.problemeSanteDetails || '-' %></td>
+                        <td><%= inscription.recommandationsParents || '-' %></td>
+                        <td><%= `${inscription.responsable1Nom} ${inscription.responsable1Prenom} (${inscription.responsable1TelPortable})` %></td>
+                        <td><%= inscription.responsable2Nom ? `${inscription.responsable2Nom} ${inscription.responsable2Prenom} (${inscription.responsable2TelPortable || '-'})` : '-' %></td>
+                        <td><%= inscription.medecinTraitant || '-' %></td>
+                        <td><%= inscription.luEtApprouveInscriptionText %></td>
+                        <td><img src="<%= inscription.signatureSanitaire %>" alt="Signature Sanitaire" style="max-width: 100px; max-height: 50px;"></td>
+                        <td><%= inscription.lieuInscription %></td>
+                        <td><%= new Date(inscription.dateInscription).toLocaleDateString('fr-FR') %></td>
+                        <td><%= inscription.remarqueSection1 || '-' %></td>
+                        <td><%= inscription.remarqueSection2 || '-' %></td>
+                        <td><%= inscription.remarqueSection3 || '-' %></td>
+                        <td><%= inscription.remarqueSection4 || '-' %></td>
+                        <td><%= inscription.remarqueSection5 || '-' %></td>
+                        <td><% if (inscription.vaccinScan) { %><a href="/uploads/<%= inscription.vaccinScan %>" target="_blank">Voir</a><% } else { %>-<% } %></td>
+                        <td><% if (inscription.medicationScan) { %><a href="/uploads/<%= inscription.medicationScan %>" target="_blank">Voir</a><% } else { %>-<% } %></td>
+                        <td><% if (inscription.recommendationMedicalScan) { %><a href="/uploads/<%= inscription.recommendationMedicalScan %>" target="_blank">Voir</a><% } else { %>-<% } %></td>
+                        <td><% if (inscription.otherDocuments && inscription.otherDocuments.length > 0) { %> <% inscription.otherDocuments.forEach(doc => { %> <a href="/uploads/<%= doc %>" target="_blank">Voir <%= doc %></a><br><% }); %> <% } else { %>-<% } %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <a href="/" class="btn btn-primary">Retour</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mouvements Scouts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Inscriptions aux Mouvements Scouts</h1>
+        <% if (isAuthenticated) { %>
+            <a href="/logout" class="btn btn-danger mb-3">Se déconnecter</a>
+        <% } else { %>
+            <a href="/login" class="btn btn-secondary mb-3">Se connecter</a>
+        <% } %>
+        <a href="/inscription" class="btn btn-primary mb-3">S'inscrire</a>
+        <hr>
+        <h2>Listes des inscrits</h2>
+        <a href="/scouts" class="btn btn-secondary">Voir Scouts</a>
+        <a href="/guides" class="btn btn-secondary">Voir Guides</a>
+        <a href="/louveteaux" class="btn btn-secondary">Voir Louveteaux</a>
+    </div>
+</body>
+</html>
