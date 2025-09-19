@@ -370,7 +370,8 @@ app.get('/louveteaux', requireAuth, async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Serveur lancé sur http://localhost:${port}`);
+    console.log(`Serveur lancé sur le port ${port}`);
 
 });
+
 
