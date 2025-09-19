@@ -601,6 +601,50 @@
         document.getElementById('sexe').addEventListener('change', function() {
             document.getElementById('sexeSanitaire').value = this.value;
         });
+        const form = document.getElementById('inscriptionForm');
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const luEtApprouveDroitImageText = document.getElementById('luEtApprouveDroitImageText').value;
+            const luEtApprouveInscriptionText = document.getElementById('luEtApprouveInscriptionText').value;
+            const signatureDroitImageData = signatureDroitImagePad.toDataURL();
+            const signatureSanitaireData = signatureSanitairePad.toDataURL();
+        
+            if (luEtApprouveDroitImageText !== 'Lu et approuvé' || luEtApprouveInscriptionText !== 'Lu et approuvé') {
+              alert('Veuillez saisir exactement "Lu et approuvé" dans les champs correspondants.');
+              return;
+            }
+        
+            if (signatureDroitImagePad.isEmpty() || signatureSanitairePad.isEmpty()) {
+              alert('Veuillez fournir une signature pour chaque section.');
+              return;
+            }
+        
+            document.getElementById('signatureDroitImage').value = signatureDroitImageData;
+            document.getElementById('signatureSanitaire').value = signatureSanitaireData;
+        
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Envoi en cours...';
+        
+            try {
+              const response = await fetch('/inscription', {
+                method: 'POST',
+                body: new FormData(form)
+              });
+              const result = await response.json();
+              if (response.ok) {
+                alert(`${result.message}\nAutorisation PDF: ${result.pdfUrl}\nFiche Sanitaire PDF: ${result.sanitaryPdfUrl}`);
+                window.location.href = '/';
+              } else {
+                alert(result.message);
+              }
+            } catch (error) {
+              alert('Erreur lors de l\'envoi du formulaire: ' + error.message);
+            } finally {
+              submitButton.disabled = false;
+              submitButton.textContent = 'S\'inscrire';
+            }
+          });
     </script>
     <footer>
         <div>
@@ -609,4 +653,5 @@
         </div>
     </footer>
 </body>
+
 </html>
