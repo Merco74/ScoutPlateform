@@ -237,7 +237,7 @@
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="autorisationTransport" name="autorisationTransport" required>
                             <label class="form-check-label" for="autorisationTransport">
-                                Je consens à ce que mon enfant effectue des trajets dans le cadre du camp des Scouts de Cluses et des Guides de Cluses, d'ordre médical ou organisationnel, dans tout véhicule personnel ou de l'association, conduit par un encadrant du camp. Sans cette autorisation, je comprends que mon enfant ne pourra être transporté que par des véhicules de secours.
+                                Je consens à ce que mon enfant effectue des trajets dans le cadre des activitées tout au long de l'année et du camp des Scouts de Cluses et des Guides de Cluses, d'ordre médical ou organisationnel, dans tout véhicule personnel ou de l'association, conduit par un encadrant du camp. Sans cette autorisation, je comprends que mon enfant ne pourra être transporté que par des véhicules de secours.
                             </label>
                         </div>
                     </div>
@@ -515,7 +515,10 @@
                         J’accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a>
                     </label>
                     <label class="form-check-label">
-                        La cotisation à l'année est fixée à 20 euros. Vous pouvez la payer soit en espèces lors d'une sortie soit par chèques à l'orde des "Scouts de Cluses" en précisant que c'est pour la cotiation de "Nom de votre enfants".
+                        La cotisation à l'année est fixée à 20 euros. Vous pouvez la payer soit en espèces lors d'une sortie, soit par chèques à l'orde des "Scouts de Cluses" (en précisant " Cotisation année pour Nom de votre enfants").
+                    </label>
+                    <label class="form-check-label">
+                        Vous pouvez également régler la cotisation via virement bancaire : IBAN : FR76 1680 7000 3085 8868 0119 504 - Titulaire du compte : ASS SCOUTS AUTONOME SAVOYARDS - Envoyer un message à Mathéo (06.72.44.49.92) précisant que vous avez éffectué le réglement par virement.
                     </label>
                 </div>
             </div>
@@ -566,42 +569,6 @@
 
         // Validation et envoi des signatures
         const form = document.getElementById('inscriptionForm');
-        form.addEventListener('submit', (e) => {
-            const luEtApprouveDroitImageText = document.getElementById('luEtApprouveDroitImageText').value;
-            const luEtApprouveInscriptionText = document.getElementById('luEtApprouveInscriptionText').value;
-            const signatureDroitImageData = signatureDroitImagePad.toDataURL();
-            const signatureSanitaireData = signatureSanitairePad.toDataURL();
-
-            if (luEtApprouveDroitImageText !== 'Lu et approuvé' || luEtApprouveInscriptionText !== 'Lu et approuvé') {
-                e.preventDefault();
-                alert('Veuillez saisir exactement "Lu et approuvé" dans les champs correspondants.');
-                return;
-            }
-
-            if (signatureDroitImagePad.isEmpty() || signatureSanitairePad.isEmpty()) {
-                e.preventDefault();
-                alert('Veuillez fournir une signature pour chaque section.');
-                return;
-            }
-
-            document.getElementById('signatureDroitImage').value = signatureDroitImageData;
-            document.getElementById('signatureSanitaire').value = signatureSanitaireData; // Assure que c'est bien envoyé comme signatureInscription
-        });
-
-        // Synchronisation en temps réel
-        document.getElementById('nom').addEventListener('input', function() {
-            document.getElementById('nomSanitaire').value = this.value;
-        });
-        document.getElementById('prenom').addEventListener('input', function() {
-            document.getElementById('prenomSanitaire').value = this.value;
-        });
-        document.getElementById('dateNaissance').addEventListener('input', function() {
-            document.getElementById('dateNaissanceSanitaire').value = this.value;
-        });
-        document.getElementById('sexe').addEventListener('change', function() {
-            document.getElementById('sexeSanitaire').value = this.value;
-        });
-        const form = document.getElementById('inscriptionForm');
           form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const luEtApprouveDroitImageText = document.getElementById('luEtApprouveDroitImageText').value;
@@ -645,6 +612,21 @@
               submitButton.textContent = 'S\'inscrire';
             }
           });
+
+        // Synchronisation en temps réel
+        document.getElementById('nom').addEventListener('input', function() {
+            document.getElementById('nomSanitaire').value = this.value;
+        });
+        document.getElementById('prenom').addEventListener('input', function() {
+            document.getElementById('prenomSanitaire').value = this.value;
+        });
+        document.getElementById('dateNaissance').addEventListener('input', function() {
+            document.getElementById('dateNaissanceSanitaire').value = this.value;
+        });
+        document.getElementById('sexe').addEventListener('change', function() {
+            document.getElementById('sexeSanitaire').value = this.value;
+        });
+        
     </script>
     <footer>
         <div>

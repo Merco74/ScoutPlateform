@@ -16,6 +16,8 @@
     "express-session": "^1.18.2",
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
-    "pdfkit": "^0.13.0"
+    "pdfkit": "^0.13.0",
+    "cloudinary": "^2.5.0",
+    "multer-storage-cloudinary": "^4.0.0"
   }
 }
