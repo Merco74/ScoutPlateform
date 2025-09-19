@@ -11,7 +11,7 @@ const Guide = require('./models/Guide');
 const Louveteau = require('./models/Louveteau');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -373,3 +373,4 @@ app.listen(port, () => {
     console.log(`Serveur lancé sur http://localhost:${port}`);
 
 });
+
