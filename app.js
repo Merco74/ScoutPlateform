@@ -9,7 +9,6 @@ const { Buffer } = require('buffer');
 const Scout = require('./models/Scout');
 const Guide = require('./models/Guide');
 const Louveteau = require('./models/Louveteau');
-require('dotenv').config();
 
 const app = express();
 const port = 3000;
@@ -372,4 +371,5 @@ app.get('/louveteaux', requireAuth, async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Serveur lancé sur http://localhost:${port}`);
+
 });
