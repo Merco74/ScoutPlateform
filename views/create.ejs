@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Inscription - Scouts et Guides de Cluses</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -12,6 +13,7 @@
     <div class="container">
         <a href="/" class="btn btn-secondary mb-4"><i class="bi bi-arrow-left me-2"></i>Retour à l'accueil</a>
         <h1>Inscription au mouvement Scouts et Guides de Cluses</h1>
+        <div id="error-message" class="alert alert-danger d-none"></div>
         <form action="/inscription" method="POST" id="inscriptionForm" enctype="multipart/form-data">
             <!-- Section 1 : Personne inscrite -->
             <div class="card form-section">
@@ -75,7 +77,6 @@
                             <input type="tel" class="form-control" id="telPortable" name="telPortable" required>
                         </div>
                     </div>
-                    <!-- Remarques des parents -->
                     <div class="mb-3">
                         <label for="remarqueSection1" class="form-label">Remarques des parents</label>
                         <textarea class="form-control" id="remarqueSection1" name="remarqueSection1" rows="3"></textarea>
@@ -157,7 +158,6 @@
                             <option value="Tuteur légal">Tuteur légal</option>
                         </select>
                     </div>
-                    <!-- Remarques des parents -->
                     <div class="mb-3">
                         <label for="remarqueSection2" class="form-label">Remarques des parents</label>
                         <textarea class="form-control" id="remarqueSection2" name="remarqueSection2" rows="3"></textarea>
@@ -186,7 +186,6 @@
                         <label for="nomAutreClub" class="form-label">Si oui, lequel ?</label>
                         <input type="text" class="form-control" id="nomAutreClub" name="nomAutreClub">
                     </div>
-                    <!-- Remarques des parents -->
                     <div class="mb-3">
                         <label for="remarqueSection3" class="form-label">Remarques des parents</label>
                         <textarea class="form-control" id="remarqueSection3" name="remarqueSection3" rows="3"></textarea>
@@ -237,7 +236,7 @@
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="autorisationTransport" name="autorisationTransport" required>
                             <label class="form-check-label" for="autorisationTransport">
-                                Je consens à ce que mon enfant effectue des trajets dans le cadre des activitées tout au long de l'année et du camp des Scouts de Cluses et des Guides de Cluses, d'ordre médical ou organisationnel, dans tout véhicule personnel ou de l'association, conduit par un encadrant du camp. Sans cette autorisation, je comprends que mon enfant ne pourra être transporté que par des véhicules de secours.
+                                Je consens à ce que mon enfant effectue des trajets dans le cadre des activités tout au long de l'année et du camp des Scouts de Cluses et des Guides de Cluses, d'ordre médical ou organisationnel, dans tout véhicule personnel ou de l'association, conduit par un encadrant du camp. Sans cette autorisation, je comprends que mon enfant ne pourra être transporté que par des véhicules de secours.
                             </label>
                         </div>
                     </div>
@@ -251,7 +250,6 @@
                         <input type="hidden" id="signatureDroitImage" name="signatureDroitImage" required>
                         <button type="button" id="clearSignatureDroitImage" class="btn btn-secondary mt-2">Effacer la signature</button>
                     </div>
-                    <!-- Remarques des parents -->
                     <div class="mb-3">
                         <label for="remarqueSection4" class="form-label">Remarques des parents</label>
                         <textarea class="form-control" id="remarqueSection4" name="remarqueSection4" rows="3"></textarea>
@@ -461,7 +459,6 @@
                         <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant">
                     </div>
 
-                    <!-- Signature sanitaire -->
                     <div class="mb-3">
                         <label for="luEtApprouveInscriptionText" class="form-label">Veuillez saisir "Lu et approuvé"</label>
                         <input type="text" class="form-control" id="luEtApprouveInscriptionText" name="luEtApprouveInscriptionText" required>
@@ -480,12 +477,10 @@
                         <label class="form-label">Le</label>
                         <input type="text" class="form-control" value="<%= new Date().toLocaleDateString('fr-FR') %>" readonly>
                     </div>
-                    <!-- Dépose de documents -->
                     <div class="mb-3">
                         <label for="otherDocuments" class="form-label">Autres documents utiles (PDF ou images, max 10)</label>
                         <input type="file" class="form-control" id="otherDocuments" name="otherDocuments" accept="application/pdf,image/*" multiple>
                     </div>
-                    <!-- Remarques des parents -->
                     <div class="mb-3">
                         <label for="remarqueSection5" class="form-label">Remarques des parents</label>
                         <textarea class="form-control" id="remarqueSection5" name="remarqueSection5" rows="3"></textarea>
@@ -508,18 +503,18 @@
                             <option value="louveteau">Louveteau</option>
                         </select>
                     </div>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
-                    <label class="form-check-label" for="acceptRGPD">
-                        J’accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a>
-                    </label>
-                    <label class="form-check-label">
-                        La cotisation à l'année est fixée à 20 euros. Vous pouvez la payer soit en espèces lors d'une sortie, soit par chèques à l'orde des "Scouts de Cluses" (en précisant " Cotisation année pour Nom de votre enfants").
-                    </label>
-                    <label class="form-check-label">
-                        Vous pouvez également régler la cotisation via virement bancaire : IBAN : FR76 1680 7000 3085 8868 0119 504 - Titulaire du compte : ASS SCOUTS AUTONOME SAVOYARDS - Envoyer un message à Mathéo (06.72.44.49.92) précisant que vous avez éffectué le réglement par virement.
-                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
+                        <label class="form-check-label" for="acceptRGPD">
+                            J’accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a>
+                        </label>
+                    </div>
+                    <div class="form-text mt-3">
+                        La cotisation à l'année est fixée à 20 euros. Vous pouvez la payer soit en espèces lors d'une sortie, soit par chèques à l'ordre des "Scouts de Cluses" (en précisant "Cotisation année pour Nom de votre enfant").
+                    </div>
+                    <div class="form-text">
+                        Vous pouvez également régler la cotisation via virement bancaire : IBAN : FR76 1680 7000 3085 8868 0119 504 - Titulaire du compte : ASS SCOUTS AUTONOME SAVOYARDS - Envoyer un message à Mathéo (06.72.44.49.92) précisant que vous avez effectué le règlement par virement.
+                    </div>
                 </div>
             </div>
 
@@ -569,49 +564,57 @@
 
         // Validation et envoi des signatures
         const form = document.getElementById('inscriptionForm');
-          form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.classList.add('d-none');
+            errorMessage.textContent = '';
+
             const luEtApprouveDroitImageText = document.getElementById('luEtApprouveDroitImageText').value;
             const luEtApprouveInscriptionText = document.getElementById('luEtApprouveInscriptionText').value;
             const signatureDroitImageData = signatureDroitImagePad.toDataURL();
             const signatureSanitaireData = signatureSanitairePad.toDataURL();
-        
+
             if (luEtApprouveDroitImageText !== 'Lu et approuvé' || luEtApprouveInscriptionText !== 'Lu et approuvé') {
-              alert('Veuillez saisir exactement "Lu et approuvé" dans les champs correspondants.');
-              return;
+                errorMessage.textContent = 'Veuillez saisir exactement "Lu et approuvé" dans les champs correspondants.';
+                errorMessage.classList.remove('d-none');
+                return;
             }
-        
+
             if (signatureDroitImagePad.isEmpty() || signatureSanitairePad.isEmpty()) {
-              alert('Veuillez fournir une signature pour chaque section.');
-              return;
+                errorMessage.textContent = 'Veuillez fournir une signature pour chaque section.';
+                errorMessage.classList.remove('d-none');
+                return;
             }
-        
+
             document.getElementById('signatureDroitImage').value = signatureDroitImageData;
             document.getElementById('signatureSanitaire').value = signatureSanitaireData;
-        
+
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'Envoi en cours...';
-        
+
             try {
-              const response = await fetch('/inscription', {
-                method: 'POST',
-                body: new FormData(form)
-              });
-              const result = await response.json();
-              if (response.ok) {
-                alert(`${result.message}\nAutorisation PDF: ${result.pdfUrl}\nFiche Sanitaire PDF: ${result.sanitaryPdfUrl}`);
-                window.location.href = '/';
-              } else {
-                alert(result.message);
-              }
+                const response = await fetch('/inscription', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`${result.message}\nAutorisation PDF: ${result.pdfUrl}\nFiche Sanitaire PDF: ${result.sanitaryPdfUrl}`);
+                    window.location.href = '/';
+                } else {
+                    errorMessage.textContent = result.message || 'Erreur lors de l’envoi du formulaire.';
+                    errorMessage.classList.remove('d-none');
+                }
             } catch (error) {
-              alert('Erreur lors de l\'envoi du formulaire: ' + error.message);
+                errorMessage.textContent = 'Erreur lors de l’envoi du formulaire : ' + (error.message || 'Erreur inconnue');
+                errorMessage.classList.remove('d-none');
             } finally {
-              submitButton.disabled = false;
-              submitButton.textContent = 'S\'inscrire';
+                submitButton.disabled = false;
+                submitButton.textContent = 'S\'inscrire';
             }
-          });
+        });
 
         // Synchronisation en temps réel
         document.getElementById('nom').addEventListener('input', function() {
@@ -626,14 +629,12 @@
         document.getElementById('sexe').addEventListener('change', function() {
             document.getElementById('sexeSanitaire').value = this.value;
         });
-        
     </script>
-    <footer>
+    <footer class="text-center mt-5 mb-3">
         <div>
             &copy; 2025 Scouts de Cluses. Tous droits réservés.<br>
             <a href="/mentions-legales" style="color:#2e7d32;text-decoration:underline;">Mentions légales</a>
         </div>
     </footer>
 </body>
-
 </html>
