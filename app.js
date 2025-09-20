@@ -72,7 +72,7 @@ const generatePdfBuffer = (formData, type) => {
     doc.on('end', () => resolve(Buffer.concat(buffers)));
     doc.on('error', reject);
 
-    const bannerImageUrl = 'https://res.cloudinary.com/your-cloud-name/image/upload/scouts-cluses/assets/scouts-cluses-banner.jpg';
+    const bannerImageUrl = '/images/scouts-cluses-banner.jpg';
 
     if (type === 'auth') {
       doc.image(bannerImageUrl, 50, 45, { width: 50 })
