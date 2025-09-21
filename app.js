@@ -46,8 +46,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'ton-secret-super-securise',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 14 * 24 * 60 * 60, // 14 days
+    autoRemove: 'native' // Remove expired sessions
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // true for HTTPS on Railway
+    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+    httpOnly: true,
+    sameSite: 'lax' // Helps with CSRF and cross-site requests
+  }
 }));
 
 // MongoDB connection
