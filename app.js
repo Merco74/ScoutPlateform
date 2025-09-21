@@ -200,7 +200,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/inscription', (req, res) => {
-  res.render('inscription', {});
+  res.render('create', {});
 });
 
 app.get('/mentions-legales', (req, res) => {
