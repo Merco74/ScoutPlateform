@@ -15,6 +15,9 @@ const Louveteau = require('./models/Louveteau');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Trust proxy for Railway's load balancer
+app.set('trust proxy', 1);
+
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -27,6 +30,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
+
+// Debug middleware to log session state
+app.use((req, res, next) => {
+  console.log(`Request: ${req.method} ${req.url}, Session ID: ${req.sessionID}, Session:`, req.session);
+  next();
+});
 
 // Multer configuration for file uploads
 const storage = multer.memoryStorage();
@@ -44,35 +53,42 @@ const upload = multer({
 });
 
 // Session configuration with MongoDB store
+const mongoStore = MongoStore.create({
+  mongoUrl: process.env.MONGODB_URI,
+  ttl: 14 * 24 * 60 * 60, // 14 days
+  autoRemove: 'native' // Remove expired sessions
+});
+mongoStore.on('error', err => console.error('MongoStore error:', err));
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'ton-secret-super-securise',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 14 * 24 * 60 * 60, // 14 days
-    autoRemove: 'native' // Remove expired sessions
-  }),
+  store: mongoStore,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // true for HTTPS on Railway
+    secure: process.env.NODE_ENV === 'production' ? 'auto' : false, // Auto for Railway HTTPS
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     httpOnly: true,
-    sameSite: 'lax' // Helps with CSRF and cross-site requests
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-site cookies in production
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost'
   }
 }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connecté à MongoDB'))
-  .catch(err => console.error('Erreur MongoDB:', err));
-
-// Debug MongoStore errors
-const sessionStore = MongoStore.create({ mongoUrl: process.env.MONGODB_URI });
-sessionStore.on('error', err => console.error('MongoStore error:', err));
+// MongoDB connection with retry
+const connectWithRetry = () => {
+  mongoose.connect(process.env.MONGODB_URI, { maxPoolSize: 10 })
+    .then(() => console.log('Connecté à MongoDB'))
+    .catch(err => {
+      console.error('Erreur MongoDB:', err);
+      setTimeout(connectWithRetry, 5000); // Retry after 5 seconds
+    });
+};
+connectWithRetry();
 
 // Middleware for authentication
 const requireAuth = (req, res, next) => {
-  console.log('Checking auth:', req.session);
+  console.log('Checking auth, Session ID:', req.sessionID, 'isAuthenticated:', req.session.isAuthenticated);
   if (req.session.isAuthenticated) {
     return next();
   }
@@ -444,24 +460,37 @@ app.post('/inscription', upload.fields([
 
 // Route de login
 app.get('/login', (req, res) => {
-  console.log('GET /login session:', req.session);
+  console.log('GET /login, Session ID:', req.sessionID, 'Session:', req.session);
   res.render('login', { error: null });
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const password = req.body.password;
+  if (!password) {
+    console.log('Login failed: No password provided');
+    return res.render('login', { error: 'Veuillez entrer un mot de passe' });
+  }
+
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'scout123';
-  console.log('Login attempt:', { password, ADMIN_PASSWORD });
+  console.log('Login attempt:', { password, ADMIN_PASSWORD, sessionID: req.sessionID });
+
   if (password === ADMIN_PASSWORD) {
     req.session.isAuthenticated = true;
-    req.session.save(err => {
-      if (err) {
-        console.error('Erreur lors de la sauvegarde de la session:', err);
-        return res.status(500).json({ message: 'Erreur serveur lors de la connexion' });
-      }
-      console.log('Session after login:', req.session);
+    try {
+      await new Promise((resolve, reject) => {
+        req.session.save(err => {
+          if (err) {
+            console.error('Erreur lors de la sauvegarde de la session:', err);
+            return reject(err);
+          }
+          console.log('Session saved:', req.session);
+          resolve();
+        });
+      });
       res.redirect('/');
-    });
+    } catch (err) {
+      res.status(500).json({ message: 'Erreur serveur lors de la connexion' });
+    }
   } else {
     console.log('Login failed: Incorrect password');
     res.render('login', { error: 'Mot de passe incorrect' });
@@ -470,6 +499,7 @@ app.post('/login', (req, res) => {
 
 // Route de logout
 app.get('/logout', (req, res) => {
+  console.log('Logout, Session ID:', req.sessionID);
   req.session.destroy(err => {
     if (err) {
       console.error('Erreur lors de la déconnexion:', err);
