@@ -6,6 +6,8 @@ const multer = require('multer');
 const PDFDocument = require('pdfkit');
 const { Buffer } = require('buffer');
 const cloudinary = require('cloudinary').v2;
+const path = require('path');
+const fs = require('fs');
 const Scout = require('./models/Scout');
 const Guide = require('./models/Guide');
 const Louveteau = require('./models/Louveteau');
@@ -64,8 +66,13 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connecté à MongoDB'))
   .catch(err => console.error('Erreur MongoDB:', err));
 
+// Debug MongoStore errors
+const sessionStore = MongoStore.create({ mongoUrl: process.env.MONGODB_URI });
+sessionStore.on('error', err => console.error('MongoStore error:', err));
+
 // Middleware for authentication
 const requireAuth = (req, res, next) => {
+  console.log('Checking auth:', req.session);
   if (req.session.isAuthenticated) {
     return next();
   }
@@ -73,7 +80,7 @@ const requireAuth = (req, res, next) => {
 };
 
 // Function to generate PDF buffer
-const generatePdfBuffer = (formData, type) => {
+const generatePdfBuffer = async (formData, type) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const buffers = [];
@@ -81,13 +88,17 @@ const generatePdfBuffer = (formData, type) => {
     doc.on('end', () => resolve(Buffer.concat(buffers)));
     doc.on('error', reject);
 
-    const bannerImageUrl = './images/scouts-cluses-banner.jpg';
+    const bannerImagePath = path.join(__dirname, 'images', 'scouts-cluses-banner.jpg');
+    if (!fs.existsSync(bannerImagePath)) {
+      reject(new Error(`Image de bannière introuvable à ${bannerImagePath}`));
+      return;
+    }
 
     if (type === 'auth') {
-      doc.image(bannerImageUrl, 50, 45, { width: 50 })
+      doc.image(bannerImagePath, 50, 45, { width: 50 })
         .fontSize(20)
         .text('Autorisation de Droit à l\'Image et de Transport', { align: 'center' })
-        .image(bannerImageUrl, 500, 45, { width: 50 })
+        .image(bannerImagePath, 500, 45, { width: 50 })
         .moveDown(2);
 
       doc.fontSize(14).text('IDENTITÉ', { underline: true });
@@ -142,10 +153,10 @@ const generatePdfBuffer = (formData, type) => {
         .text(`Fait à : ${formData.lieuInscription || '-'}`, 50, 700)
         .text(`Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, 720);
     } else if (type === 'sanitary') {
-      doc.image(bannerImageUrl, 50, 45, { width: 50 })
+      doc.image(bannerImagePath, 50, 45, { width: 50 })
         .fontSize(20)
         .text('Fiche Sanitaire', { align: 'center' })
-        .image(bannerImageUrl, 500, 45, { width: 50 })
+        .image(bannerImagePath, 500, 45, { width: 50 })
         .moveDown(2);
 
       doc.fontSize(14).text('IDENTITÉ', { underline: true });
@@ -205,6 +216,7 @@ const generatePdfBuffer = (formData, type) => {
 
 // Routes publiques
 app.get('/', (req, res) => {
+  console.log('Homepage session:', req.session);
   res.render('index', { isAuthenticated: req.session.isAuthenticated || false });
 });
 
@@ -229,6 +241,13 @@ app.post('/inscription', upload.fields([
     // Validate form data
     if (!formData.nom || !formData.prenom || !formData.categorie) {
       return res.status(400).json({ message: 'Nom, prénom et catégorie sont requis.' });
+    }
+    const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,}$/;
+    if (!nameRegex.test(formData.nom)) {
+      return res.status(400).json({ message: 'Le nom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
+    }
+    if (!nameRegex.test(formData.prenom)) {
+      return res.status(400).json({ message: 'Le prénom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
     }
     if (formData.luEtApprouveDroitImageText !== 'Lu et approuvé' || formData.luEtApprouveInscriptionText !== 'Lu et approuvé') {
       return res.status(400).json({ message: 'Veuillez saisir "Lu et approuvé" dans les champs correspondants.' });
@@ -425,23 +444,37 @@ app.post('/inscription', upload.fields([
 
 // Route de login
 app.get('/login', (req, res) => {
+  console.log('GET /login session:', req.session);
   res.render('login', { error: null });
 });
 
 app.post('/login', (req, res) => {
   const password = req.body.password;
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'scout123';
+  console.log('Login attempt:', { password, ADMIN_PASSWORD });
   if (password === ADMIN_PASSWORD) {
     req.session.isAuthenticated = true;
-    res.redirect('/');
+    req.session.save(err => {
+      if (err) {
+        console.error('Erreur lors de la sauvegarde de la session:', err);
+        return res.status(500).json({ message: 'Erreur serveur lors de la connexion' });
+      }
+      console.log('Session after login:', req.session);
+      res.redirect('/');
+    });
   } else {
+    console.log('Login failed: Incorrect password');
     res.render('login', { error: 'Mot de passe incorrect' });
   }
 });
 
 // Route de logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Erreur lors de la déconnexion:', err);
+      return res.status(500).json({ message: 'Erreur serveur lors de la déconnexion' });
+    }
     res.redirect('/');
   });
 });
@@ -452,6 +485,7 @@ app.get('/scouts', requireAuth, async (req, res) => {
     const scouts = await Scout.find();
     res.render('list', { inscriptions: scouts, titre: 'Scouts' });
   } catch (err) {
+    console.error('Erreur lors de la récupération des scouts:', err);
     res.status(500).json({ message: 'Erreur lors de la récupération des scouts.' });
   }
 });
@@ -461,6 +495,7 @@ app.get('/guides', requireAuth, async (req, res) => {
     const guides = await Guide.find();
     res.render('list', { inscriptions: guides, titre: 'Guides' });
   } catch (err) {
+    console.error('Erreur lors de la récupération des guides:', err);
     res.status(500).json({ message: 'Erreur lors de la récupération des guides.' });
   }
 });
@@ -470,6 +505,7 @@ app.get('/louveteaux', requireAuth, async (req, res) => {
     const louveteaux = await Louveteau.find();
     res.render('list', { inscriptions: louveteaux, titre: 'Louveteaux' });
   } catch (err) {
+    console.error('Erreur lors de la récupération des louveteaux:', err);
     res.status(500).json({ message: 'Erreur lors de la récupération des louveteaux.' });
   }
 });
@@ -483,6 +519,7 @@ app.get('/test-cloudinary', async (req, res) => {
     });
     res.json({ success: true, url: result.secure_url });
   } catch (err) {
+    console.error('Erreur lors du test Cloudinary:', err);
     res.status(500).json({ message: 'Erreur lors du test Cloudinary : ' + (err.message || err) });
   }
 });
