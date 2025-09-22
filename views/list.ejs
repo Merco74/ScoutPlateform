@@ -55,24 +55,26 @@
                         <td><%= inscription.droitImage ? 'Oui' : 'Non' %></td>
                         <td><%= inscription.autorisationTransport ? 'Oui' : 'Non' %></td>
                         <td>
-                            <% if (inscription.pdfPath) { %>
-                                <a href="/uploads/<%= inscription.pdfPath %>" class="download-link" target="_blank">Télécharger Autorisation</a>
+                            <% if (inscription.pdfPath && inscription.pdfPath.startsWith('http')) { %>
+                                <a href="<%= inscription.pdfPath %>" class="download-link" target="_blank" download="Autorisation_<%= inscription.nom %>.pdf">Télécharger Autorisation</a>
                             <% } %>
-                            <% if (inscription.sanitaryPdfPath) { %>
-                                <a href="/uploads/<%= inscription.sanitaryPdfPath %>" class="download-link" target="_blank">Télécharger Fiche Sanitaire</a>
+                            <% if (inscription.sanitaryPdfPath && inscription.sanitaryPdfPath.startsWith('http')) { %>
+                                <a href="<%= inscription.sanitaryPdfPath %>" class="download-link" target="_blank" download="Fiche_Sanitaire_<%= inscription.nom %>.pdf">Télécharger Fiche Sanitaire</a>
                             <% } %>
-                            <% if (inscription.vaccinScan) { %>
-                                <a href="/uploads/<%= inscription.vaccinScan %>" class="download-link" target="_blank">Vaccins</a>
+                            <% if (inscription.vaccinScan && inscription.vaccinScan.startsWith('http')) { %>
+                                <a href="<%= inscription.vaccinScan %>" class="download-link" target="_blank" download="Vaccins_<%= inscription.nom %>.pdf">Vaccins</a>
                             <% } %>
-                            <% if (inscription.medicationScan) { %>
-                                <a href="/uploads/<%= inscription.medicationScan %>" class="download-link" target="_blank">Médicaments</a>
+                            <% if (inscription.medicationScan && inscription.medicationScan.startsWith('http')) { %>
+                                <a href="<%= inscription.medicationScan %>" class="download-link" target="_blank" download="Medicaments_<%= inscription.nom %>.pdf">Médicaments</a>
                             <% } %>
-                            <% if (inscription.recommendationMedicalScan) { %>
-                                <a href="/uploads/<%= inscription.recommendationMedicalScan %>" class="download-link" target="_blank">Recommandations Médicales</a>
+                            <% if (inscription.recommendationMedicalScan && inscription.recommendationMedicalScan.startsWith('http')) { %>
+                                <a href="<%= inscription.recommendationMedicalScan %>" class="download-link" target="_blank" download="Recommandations_<%= inscription.nom %>.pdf">Recommandations Médicales</a>
                             <% } %>
                             <% if (inscription.otherDocuments && inscription.otherDocuments.length > 0) { %>
-                                <% inscription.otherDocuments.forEach(doc => { %>
-                                    <a href="/uploads/<%= doc %>" class="download-link" target="_blank">Autre Doc <%= doc.split('/').pop() %></a>
+                                <% inscription.otherDocuments.forEach((doc, index) => { %>
+                                    <% if (doc && doc.startsWith('http')) { %>
+                                        <a href="<%= doc %>" class="download-link" target="_blank" download="Document_<%= index + 1 %>_<%= inscription.nom %>.pdf">Autre Doc <%= doc.split('/').pop() %></a>
+                                    <% } %>
                                 <% }); %>
                             <% } %>
                             <% if (!inscription.pdfPath && !inscription.sanitaryPdfPath && !inscription.vaccinScan && !inscription.medicationScan && !inscription.recommendationMedicalScan && (!inscription.otherDocuments || inscription.otherDocuments.length === 0)) { %>
