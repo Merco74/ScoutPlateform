@@ -471,7 +471,7 @@ app.post('/login', async (req, res) => {
     return res.render('login', { error: 'Veuillez entrer un mot de passe' });
   }
 
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'scout123';
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'JaimeLeScoutisme123SauflesSDF';
   console.log('Login attempt:', { password, ADMIN_PASSWORD, sessionID: req.sessionID });
 
   if (password === ADMIN_PASSWORD) {
