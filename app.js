@@ -265,8 +265,13 @@ app.post('/inscription', upload.fields([
     if (!nameRegex.test(formData.prenom)) {
       return res.status(400).json({ message: 'Le prénom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
     }
-    if (formData.luEtApprouveDroitImageText !== 'Lu et approuvé' || formData.luEtApprouveInscriptionText !== 'Lu et approuvé') {
-      return res.status(400).json({ message: 'Veuillez saisir "Lu et approuvé" dans les champs correspondants.' });
+    // Validation plus tolérante pour "Lu et approuvé"
+    const requiredText = 'lu et approuvé';
+    const luEtApprouveDroitImage = (formData.luEtApprouveDroitImageText || '').trim().toLowerCase();
+    const luEtApprouveInscription = (formData.luEtApprouveInscriptionText || '').trim().toLowerCase();
+
+    if (luEtApprouveDroitImage !== requiredText || luEtApprouveInscription !== requiredText) {
+      return res.status(400).json({ message: 'Veuillez saisir "Lu et approuvé" dans les champs correspondants (insensible à la casse et aux espaces).' });
     }
     if (!formData.signatureDroitImage || !formData.signatureSanitaire) {
       return res.status(400).json({ message: 'Les signatures sont requises.' });
