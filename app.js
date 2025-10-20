@@ -7,6 +7,7 @@ const PDFDocument = require('pdfkit');
 const { Buffer } = require('buffer');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
+
 const fs = require('fs');
 const Scout = require('./models/Scout');
 const Guide = require('./models/Guide');
@@ -561,4 +562,5 @@ app.get('/test-cloudinary', async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);
+
 });
