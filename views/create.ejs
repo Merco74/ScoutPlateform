@@ -23,6 +23,7 @@
     .error { color: red; padding: 1rem; background: #ffebee; border-radius: 8px; margin-top: 1rem; }
     .file-input { margin: 0.5rem 0; }
     .file-label { font-weight: normal; font-size: 0.9rem; color: #555; }
+    .cotisation { background: #fff3e0; padding: 1rem; border-left: 4px solid #ff9800; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -35,8 +36,9 @@
         <h2>1. Catégorie <span class="required">*</span></h2>
         <select name="categorie" required>
           <option value="">Choisir une branche...</option>
-          <option value="scout">Scout</option>
-          <option value="guide">Guide</option>
+          <option value="louveteau">Louveteau / Jeannette (8-11 ans)</option>
+          <option value="scout">Scout / Caravelle (11-14 ans)</option>
+          <option value="guide">Guide / Pionnier (14-17 ans)</option>
         </select>
       </div>
 
@@ -70,19 +72,26 @@
           </div>
           <div>
             <label>Code postal <span class="required">*</span></label>
-            <input type="text" name="codePostal" required>
+            <input type="text" name="codePostal" pattern="\d{5}" required>
           </div>
           <div style="grid-column: span 2;">
-            <label>Adresse complète (facultatif)</label>
-            <input type="text" name="adresse">
+            <label>Adresse complète <span class="required">*</span></label>
+            <input type="text" name="adresse" required>
+          </div>
+          <div>
+            <label>Téléphone du jeune <span class="required">*</span></label>
+            <input type="tel" name="telPortable" pattern="0[6-7]\d{8}" placeholder="06..." required>
+          </div>
+          <div>
+            <label>Email du jeune (facultatif)</label>
+            <input type="email" name="email">
           </div>
         </div>
       </div>
 
-      <!-- === RESPONSABLES LÉGAUX (OBLIGATOIRE) === -->
+      <!-- === RESPONSABLES LÉGAUX === -->
       <div class="section">
         <h2>3. Responsables légaux <span class="required">*</span></h2>
-        <p><em>Informations nécessaires pour la sécurité et les urgences</em></p>
 
         <h3>Responsable 1 (parent ou tuteur légal)</h3>
         <div class="form-grid">
@@ -100,7 +109,7 @@
           </div>
           <div>
             <label>Téléphone portable <span class="required">*</span></label>
-            <input type="tel" name="responsable1TelPortable" required>
+            <input type="tel" name="responsable1TelPortable" pattern="0[6-7]\d{8}" required>
           </div>
           <div>
             <label>Téléphone domicile</label>
@@ -110,53 +119,30 @@
             <label>Téléphone travail</label>
             <input type="tel" name="responsable1TelTravail">
           </div>
+          <div>
+            <label>Email parental <span class="required">*</span></label>
+            <input type="email" name="parentEmail" required>
+          </div>
         </div>
 
         <h3>Responsable 2 (facultatif)</h3>
         <div class="form-grid">
-          <div>
-            <label>Nom</label>
-            <input type="text" name="responsable2Nom">
-          </div>
-          <div>
-            <label>Prénom</label>
-            <input type="text" name="responsable2Prenom">
-          </div>
-          <div style="grid-column: span 2;">
-            <label>Adresse complète</label>
-            <input type="text" name="responsable2Adresse">
-          </div>
-          <div>
-            <label>Téléphone portable</label>
-            <input type="tel" name="responsable2TelPortable">
-          </div>
-          <div>
-            <label>Téléphone domicile</label>
-            <input type="tel" name="responsable2TelDomicile">
-          </div>
-          <div>
-            <label>Téléphone travail</label>
-            <input type="tel" name="responsable2TelTravail">
-          </div>
+          <div><label>Nom</label><input type="text" name="responsable2Nom"></div>
+          <div><label>Prénom</label><input type="text" name="responsable2Prenom"></div>
+          <div style="grid-column: span 2;"><label>Adresse</label><input type="text" name="responsable2Adresse"></div>
+          <div><label>Portable</label><input type="tel" name="responsable2TelPortable"></div>
+          <div><label>Domicile</label><input type="tel" name="responsable2TelDomicile"></div>
+          <div><label>Travail</label><input type="tel" name="responsable2TelTravail"></div>
         </div>
       </div>
 
-      <!-- === CONTACT D'URGENCE (AUTRE QUE PARENTS) === -->
+      <!-- === CONTACT D'URGENCE === -->
       <div class="section">
         <h2>4. Contact d'urgence (autre que parents) <span class="required">*</span></h2>
         <div class="form-grid">
-          <div>
-            <label>Nom <span class="required">*</span></label>
-            <input type="text" name="contactUrgenceNom" required>
-          </div>
-          <div>
-            <label>Prénom <span class="required">*</span></label>
-            <input type="text" name="contactUrgencePrenom" required>
-          </div>
-          <div>
-            <label>Téléphone <span class="required">*</span></label>
-            <input type="tel" name="contactUrgenceTel" required>
-          </div>
+          <div><label>Nom <span class="required">*</span></label><input type="text" name="contactUrgenceNom" required></div>
+          <div><label>Prénom <span class="required">*</span></label><input type="text" name="contactUrgencePrenom" required></div>
+          <div><label>Téléphone <span class="required">*</span></label><input type="tel" name="contactUrgenceTel" required></div>
           <div>
             <label>Sexe <span class="required">*</span></label>
             <select name="contactUrgenceSexe" required>
@@ -166,110 +152,115 @@
             </select>
           </div>
           <div style="grid-column: span 2;">
-            <label>Lien avec l'enfant (ex: grand-parent, oncle) <span class="required">*</span></label>
-            <input type="text" name="contactUrgenceLien" required>
+            <label>Lien <span class="required">*</span></label>
+            <select name="contactUrgenceLien" required>
+              <option value="">Choisir...</option>
+              <option value="Famille">Famille</option>
+              <option value="Tuteur légal">Tuteur légal</option>
+            </select>
           </div>
         </div>
       </div>
 
+      <!-- === AUTRE CLUB === -->
+      <div class="section">
+        <h2>5. Autre club sportif ?</h2>
+        <label><input type="checkbox" name="autreClub"> Oui, mon enfant est inscrit dans un autre club</label>
+        <input type="text" name="nomAutreClub" placeholder="Nom du club (si oui)">
+      </div>
+
       <!-- === FICHE SANITAIRE === -->
       <div class="section">
-        <h2>5. Fiche sanitaire</h2>
+        <h2>6. Fiche sanitaire</h2>
         <div class="checkbox-group">
           <label><input type="checkbox" name="vaccinsObligatoires" checked disabled> Vaccins obligatoires à jour</label>
         </div>
 
         <h3>Vaccins recommandés</h3>
         <div class="form-grid">
-          <div><label>Diphtérie</label><input type="text" name="vaccinDiphtérie" value="OK"></div>
-          <div><label>Coqueluche</label><input type="text" name="vaccinCoqueluche" value="OK"></div>
-          <div><label>Tétanos</label><input type="text" name="vaccinTétanos" value="OK"></div>
-          <div><label>Haemophilus</label><input type="text" name="vaccinHaemophilus" value="OK"></div>
-          <div><label>Poliomyélite</label><input type="text" name="vaccinPoliomyélite" value="OK"></div>
-          <div><label>Rougeole</label><input type="text" name="vaccinRougeole" value="OK"></div>
-          <div><label>Pneumocoque</label><input type="text" name="vaccinPneumocoque" value="OK"></div>
-          <div><label>BCG</label><input type="text" name="vaccinBcg" value="OK"></div>
+          <div><input type="text" name="vaccinDiphtérie" value="OK" readonly></div>
+          <div><input type="text" name="vaccinCoqueluche" value="OK" readonly></div>
+          <div><input type="text" name="vaccinTétanos" value="OK" readonly></div>
+          <div><input type="text" name="vaccinHaemophilus" value="OK" readonly></div>
+          <div><input type="text" name="vaccinPoliomyélite" value="OK" readonly></div>
+          <div><input type="text" name="vaccinRougeole" value="OK" readonly></div>
+          <div><input type="text" name="vaccinPneumocoque" value="OK" readonly></div>
+          <div><input type="text" name="vaccinBcg" value="OK" readonly></div>
         </div>
         <label>Autres vaccins :</label>
-        <input type="text" name="vaccinsAutres" placeholder="Précisez...">
+        <input type="text" name="vaccinsAutres">
 
         <div class="checkbox-group">
           <label><input type="checkbox" name="traitementMedical"> En traitement médical</label>
           <label><input type="checkbox" name="allergiesAlimentaires"> Allergies alimentaires</label>
-          <label><input type="checkbox" name="allergiesMedicament"> Allergies aux médicaments</label>
+          <label><input type="checkbox" name="allergiesMedicament"> Allergies médicaments</label>
           <label><input type="checkbox" name="allergiesAutres"> Autres allergies</label>
         </div>
-        <label>Détails des allergies :</label>
-        <textarea name="allergiesDetails" rows="2" placeholder="Ex: arachide, pénicilline..."></textarea>
+        <textarea name="allergiesDetails" rows="2" placeholder="Précisez..."></textarea>
 
-        <label><input type="checkbox" name="problemeSante"> Problème de santé chronique</label>
-        <textarea name="problemeSanteDetails" rows="2" placeholder="Asthme, diabète..."></textarea>
+        <label><input type="checkbox" name="problemeSante"> Problème de santé</label>
+        <textarea name="problemeSanteDetails" rows="2" placeholder="Détails..."></textarea>
 
         <label>Médecin traitant :</label>
-        <input type="text" name="medecinTraitant" placeholder="Nom et téléphone">
+        <input type="text" name="medecinTraitant">
       </div>
 
-      <!-- === DOCUMENTS À JOINDRE === -->
+      <!-- === DOCUMENTS === -->
       <div class="section">
-        <h2>6. Documents à fournir</h2>
+        <h2>7. Documents</h2>
         <div class="file-input">
-          <label class="file-label"><strong>Carnet de vaccination (PDF ou photo) <span class="required">*</span></strong></label>
+          <label class="file-label"><strong>Carnet de vaccination <span class="required">*</span></strong></label>
           <input type="file" name="vaccinScan" accept=".pdf,.jpg,.jpeg,.png" required>
         </div>
         <div class="file-input">
-          <label class="file-label">Ordonnances médicales (facultatif)</label>
+          <label class="file-label">Ordonnances</label>
           <input type="file" name="medicationScan" accept=".pdf,.jpg,.jpeg,.png" multiple>
         </div>
         <div class="file-input">
-          <label class="file-label">Autres documents (certificat médical, etc.)</label>
+          <label class="file-label">Autres</label>
           <input type="file" name="otherDocuments" accept=".pdf,.jpg,.jpeg,.png" multiple>
         </div>
       </div>
 
-      <!-- === AUTORISATIONS (TRÈS IMPORTANT) === -->
+      <!-- === AUTORISATIONS === -->
       <div class="section">
-        <h2>7. Autorisations <span class="required">*</span></h2>
-        <p><em>À cocher obligatoirement pour valider l'inscription</em></p>
-
+        <h2>8. Autorisations <span class="required">*</span></h2>
         <div class="checkbox-group">
           <label>
             <input type="checkbox" name="droitImage" required>
-            <strong>J'autorise les Scouts & Guides de Cluses à prendre et diffuser des photos/vidéos de mon enfant</strong> dans le cadre des activités (site web, réseaux sociaux, presse locale).
+            J'autorise la prise de photos/vidéos de mon enfant
           </label>
-        </div>
-
-        <div class="checkbox-group">
           <label>
             <input type="checkbox" name="droitDiffusion" required>
-            <strong>J'autorise la diffusion des images à des fins de communication associative</strong> (interne et externe).
+            J'autorise leur diffusion (site, réseaux, presse)
           </label>
-        </div>
-
-        <div class="checkbox-group">
           <label>
             <input type="checkbox" name="autorisationTransport" required>
-            <strong>J'autorise le transport de mon enfant en véhicule personnel</strong> conduit par un responsable bénévole encadré.
+            J'autorise le transport en véhicule personnel
           </label>
         </div>
-
         <p style="font-size: 0.9rem; color: #555;">
-          Ces autorisations sont données à titre gracieux, pour une durée illimitée, dans le respect du RGPD.
+          Lu et approuvé — RGPD respecté.
         </p>
+      </div>
+
+      <!-- === COTISATION === -->
+      <div class="section cotisation">
+        <strong>Cotisation annuelle : 20 €</strong><br>
+        À régler par chèque ou virement lors de la première réunion.
       </div>
 
       <!-- === SIGNATURES === -->
       <div class="section">
-        <h2>8. Signature électronique <span class="required">*</span></h2>
-        <p>Signer avec la souris ou le doigt :</p>
-
-        <label><strong>Autorisation droit à l'image et transport</strong></label>
+        <h2>9. Signature <span class="required">*</span></h2>
+        <label><strong>Autorisation & inscription</strong></label>
         <canvas id="signatureDroitImage" class="signature-pad" width="500" height="150"></canvas>
-        <button type="button" onclick="clearSignature('signatureDroitImage')" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Effacer</button>
+        <button type="button" onclick="clearSignature('signatureDroitImage')" style="width: auto;">Effacer</button>
         <input type="hidden" name="signatureDroitImage" id="signatureDroitImageData">
 
         <label style="margin-top: 1rem;"><strong>Fiche sanitaire</strong></label>
         <canvas id="signatureSanitaire" class="signature-pad" width="500" height="150"></canvas>
-        <button type="button" onclick="clearSignature('signatureSanitaire')" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">Effacer</button>
+        <button type="button" onclick="clearSignature('signatureSanitaire')" style="width: auto;">Effacer</button>
         <input type="hidden" name="signatureSanitaire" id="signatureSanitaireData">
       </div>
 
@@ -280,13 +271,10 @@
     <div id="result"></div>
   </div>
 
-  <!-- Signature Pad -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   <script>
-    const canvas1 = document.getElementById('signatureDroitImage');
-    const canvas2 = document.getElementById('signatureSanitaire');
-    const sig1 = new SignaturePad(canvas1);
-    const sig2 = new SignaturePad(canvas2);
+    const sig1 = new SignaturePad(document.getElementById('signatureDroitImage'));
+    const sig2 = new SignaturePad(document.getElementById('signatureSanitaire'));
 
     function clearSignature(id) {
       if (id === 'signatureDroitImage') sig1.clear();
@@ -295,7 +283,6 @@
 
     document.getElementById('inscriptionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       if (sig1.isEmpty() || sig2.isEmpty()) {
         alert('Veuillez signer les deux documents');
         return;
@@ -304,27 +291,25 @@
       const formData = new FormData(e.target);
       formData.set('signatureDroitImage', sig1.toDataURL());
       formData.set('signatureSanitaire', sig2.toDataURL());
+      formData.append('luEtApprouveDroitImageText', 'Lu et approuvé');
+      formData.append('luEtApprouveInscriptionText', 'Lu et approuvé');
+      formData.append('lieuInscription', 'Cluses');
 
-      const res = await fetch('/inscription', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch('/inscription', { method: 'POST', body: formData });
       const json = await res.json();
       const result = document.getElementById('result');
-      
+
       if (json.success) {
         result.innerHTML = `
           <div class="success">
-            <strong>Inscription enregistrée avec succès !</strong><br>
-            <a href="${json.pdfUrl}" target="_blank">Autorisation droit à l'image et transport (PDF)</a><br>
-            <a href="${json.sanitaryPdfUrl}" target="_blank">Fiche sanitaire (PDF)</a>
+            Inscription enregistrée ! Cotisation : 20 € à régler.<br>
+            <a href="${json.pdfUrl}" target="_blank">Autorisation</a> | 
+            <a href="${json.sanitaryPdfUrl}" target="_blank">Fiche sanitaire</a>
           </div>`;
       } else {
-        result.innerHTML = `<div class="error">Erreur : ${json.message}</div>`;
+        result.innerHTML = `<div class="error">${json.message}</div>`;
       }
     });
   </script>
 </body>
 </html>
-
-
