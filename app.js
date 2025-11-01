@@ -1,564 +1,340 @@
+// app.js
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
 const multer = require('multer');
-const PDFDocument = require('pdfkit');
-const { Buffer } = require('buffer');
-const cloudinary = require('cloudinary').v2;
 const path = require('path');
 const fs = require('fs');
-const Scout = require('./models/Scout');
-const Guide = require('./models/Guide');
-const Louveteau = require('./models/Louveteau');
+const PDFDocument = require('pdfkit');
+const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Trust proxy for Railway's load balancer
-app.set('trust proxy', 1);
+// === CONFIGURATION ===
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/scouts_cluses';
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const PDF_DIR = path.join(__dirname, 'public', 'pdfs');
 
-// Cloudinary configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET
+[UPLOAD_DIR, PDF_DIR].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// === MIDDLEWARE ===
 app.use(express.static('public'));
+app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/pdfs', express.static(PDF_DIR));
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-// Debug middleware to log session state
-app.use((req, res, next) => {
-  console.log(`Request: ${req.method} ${req.url}, Session ID: ${req.sessionID}, Session:`, req.session);
-  next();
+// Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  }
 });
-
-// Multer configuration for file uploads
-const storage = multer.memoryStorage();
 const upload = multer({
-  storage: storage,
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (allowedTypes.includes(file.mimetype)) {
+    const allowed = /pdf|jpeg|jpg|png/;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mime = file.mimetype;
+    if (allowed.test(ext) && allowed.test(mime)) {
       cb(null, true);
     } else {
-      cb(new Error('Type de fichier non autorisé (PDF, JPEG, PNG uniquement)'));
+      cb(new Error('PDF, JPG, PNG uniquement'));
     }
-  },
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  }
 });
 
-// Session configuration with MongoDB store
-const mongoStore = MongoStore.create({
-  mongoUrl: process.env.MONGODB_URI,
-  ttl: 14 * 24 * 60 * 60, // 14 days
-  autoRemove: 'native' // Remove expired sessions
-});
-mongoStore.on('error', err => console.error('MongoStore error:', err));
+// === MONGOOSE ===
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connecté'))
+  .catch(err => console.error('MongoDB erreur:', err));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'ton-secret-super-securise',
-  resave: false,
-  saveUninitialized: false,
-  store: mongoStore,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production' ? 'auto' : false, // Auto for Railway HTTPS
-    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-site cookies in production
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost'
-  }
-}));
-
-// MongoDB connection with retry
-const connectWithRetry = () => {
-  mongoose.connect(process.env.MONGODB_URI, { maxPoolSize: 10 })
-    .then(() => console.log('Connecté à MongoDB'))
-    .catch(err => {
-      console.error('Erreur MongoDB:', err);
-      setTimeout(connectWithRetry, 5000); // Retry after 5 seconds
-    });
-};
-connectWithRetry();
-
-// Middleware for authentication
-const requireAuth = (req, res, next) => {
-  console.log('Checking auth, Session ID:', req.sessionID, 'isAuthenticated:', req.session.isAuthenticated);
-  if (req.session.isAuthenticated) {
-    return next();
-  }
-  res.redirect('/login');
+// Modèles
+const models = {
+  scout: require('./models/Scout'),
+  guide: require('./models/Guide'),
+  louveteau: require('./models/Louveteau')
 };
 
-// Function to generate PDF buffer
-const generatePdfBuffer = async (formData, type) => {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const buffers = [];
-    doc.on('data', buffers.push.bind(buffers));
-    doc.on('end', () => resolve(Buffer.concat(buffers)));
-    doc.on('error', reject);
+// === UTILITAIRES ===
+function getAge(birthDate) {
+  return moment().diff(birthDate, 'years');
+}
 
-    const bannerImagePath = path.join(__dirname, 'images', 'scouts-cluses-banner.jpg');
-    if (!fs.existsSync(bannerImagePath)) {
-      reject(new Error(`Image de bannière introuvable à ${bannerImagePath}`));
-      return;
-    }
+function sanitizeInput(str) {
+  return String(str).trim().replace(/[<>&"']/g, '');
+}
 
-    if (type === 'auth') {
-      doc.image(bannerImagePath, 50, 45, { width: 50 })
-        .fontSize(20)
-        .text('Autorisation de Droit à l\'Image et de Transport', { align: 'center' })
-        .image(bannerImagePath, 500, 45, { width: 50 })
-        .moveDown(2);
+// === ROUTES ===
 
-      doc.fontSize(14).text('IDENTITÉ', { underline: true });
-      doc.fontSize(12)
-        .text('Je soussigné(e) :')
-        .text(`Nom : ${formData.nom || '-'}`)
-        .text(`Prénom : ${formData.prenom || '-'}`)
-        .text('Demeurant :')
-        .text(formData.parentAdresse || '-')
-        .text('Adresse email :')
-        .text(formData.parentEmail || '-');
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('DROIT À L\'IMAGE', { underline: true });
-      doc.fontSize(12)
-        .text('J\'accorde aux Scouts et Guides de Cluses l\'autorisation d\'effectuer des prises de vue photographiques ou des enregistrements audiovisuels sur lesquels mon enfant pourrait apparaître.')
-        .moveDown();
-      let yPos = doc.y;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.droitImage === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('1. Autorisation des prises de vue photographiques ou enregistrements audiovisuels.', 70, yPos);
-      yPos += 20;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.droitDiffusion === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('2. Autorisation de diffusion sur réseaux (interne, Internet, presse locale).', 70, yPos);
-      doc.moveDown();
-      doc.text('Ces autorisations sont consenties à titre gracieux, pour un territoire illimité et sans limitation de durée, dans le respect de la législation sur le droit à l\'image et la vie privée.');
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('AUTORISATION DE TRANSPORT', { underline: true });
-      doc.fontSize(12)
-        .text('Je consens à ce que mon enfant effectue des trajets dans le cadre du camp des Scouts et Guides de Cluses, d\'ordre médical ou organisationnel, dans des véhicules personnels ou de l\'association conduits par un encadrant.')
-        .moveDown();
-      yPos = doc.y;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.autorisationTransport === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('1. Autorisation des trajets dans les conditions décrites ci-dessus.', 70, yPos);
-      doc.moveDown();
-      doc.text('Sans cette autorisation, mon enfant ne pourra être transporté que par des véhicules de secours.');
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('SIGNATURE', { underline: true });
-      doc.fontSize(12).text('Veuillez apposer votre signature ci-dessous :', 50, doc.y);
-      doc.rect(50, doc.y + 20, 500, 100).stroke();
-      if (formData.signatureDroitImage) {
-        const signatureData = formData.signatureDroitImage.replace(/^data:image\/png;base64,/, '');
-        doc.image(Buffer.from(signatureData, 'base64'), 60, doc.y + 30, { width: 150 });
-      }
-      doc.moveDown(4);
-
-      doc.fontSize(10)
-        .text(`Fait à : ${formData.lieuInscription || '-'}`, 50, 700)
-        .text(`Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, 720);
-    } else if (type === 'sanitary') {
-      doc.image(bannerImagePath, 50, 45, { width: 50 })
-        .fontSize(20)
-        .text('Fiche Sanitaire', { align: 'center' })
-        .image(bannerImagePath, 500, 45, { width: 50 })
-        .moveDown(2);
-
-      doc.fontSize(14).text('IDENTITÉ', { underline: true });
-      doc.fontSize(12)
-        .text(`Nom : ${formData.nom || '-'}`)
-        .text(`Prénom : ${formData.prenom || '-'}`)
-        .text(`Âge : ${formData.age || '-'}`)
-        .text(`Contact : ${formData.telPortable || '-'}`);
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('INFORMATIONS MÉDICALES', { underline: true });
-      doc.fontSize(12)
-        .text(`Vaccins obligatoires : ${formData.vaccinsObligatoires === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Vaccins recommandés : ${Object.entries(formData.vaccinsRecommandes || {}).map(([key, value]) => value ? `${key}: ${value}` : '').filter(v => v).join(', ') || '-'}`)
-        .text(`Traitement médical : ${formData.traitementMedical === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Médecin traitant : ${formData.medecinTraitant || '-'}`);
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('ALLERGIES', { underline: true });
-      doc.fontSize(12)
-        .text(`Alimentaires : ${formData.allergiesAlimentaires === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Médicamenteuses : ${formData.allergiesMedicament === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Autres : ${formData.allergiesAutres === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Détails : ${formData.allergiesDetails || '-'}`);
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('SANTÉ', { underline: true });
-      doc.fontSize(12)
-        .text(`Problème de santé : ${formData.problemeSante === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Détails : ${formData.problemeSanteDetails || '-'}`)
-        .text(`Recommandations parents : ${formData.recommandationsParents || '-'}`);
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('CONTACTS', { underline: true });
-      doc.fontSize(12)
-        .text(`Responsable 1 : ${(formData.responsable1Nom || '-') + ' ' + (formData.responsable1Prenom || '-') + ' (' + (formData.responsable1TelPortable || '-') + ')'}`)
-        .text(`Responsable 2 : ${(formData.responsable2Nom || '-') + ' ' + (formData.responsable2Prenom || '-') + ' (' + (formData.responsable2TelPortable || '-') + ')'}`)
-        .text(`Contact urgence : ${(formData.contactUrgenceNom || '-') + ' ' + (formData.contactUrgencePrenom || '-') + ' (' + (formData.contactUrgenceTel || '-') + ')'}`);
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('SIGNATURE', { underline: true });
-      doc.fontSize(12).text('Veuillez apposer votre signature ci-dessous :', 50, doc.y);
-      doc.rect(50, doc.y + 20, 500, 100).stroke();
-      if (formData.signatureSanitaire) {
-        const signatureData = formData.signatureSanitaire.replace(/^data:image\/png;base64,/, '');
-        doc.image(Buffer.from(signatureData, 'base64'), 60, doc.y + 30, { width: 150 });
-      }
-      doc.moveDown(4);
-
-      doc.fontSize(10)
-        .text(`Fait à : ${formData.lieuInscription || '-'}`, 50, 700)
-        .text(`Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, 720);
-    }
-    doc.end();
-  });
-};
-
-// Routes publiques
 app.get('/', (req, res) => {
-  console.log('Homepage session:', req.session);
-  res.render('index', { isAuthenticated: req.session.isAuthenticated || false });
-});
-
-app.get('/inscription', (req, res) => {
-  res.render('create', {});
+  res.render('create');
 });
 
 app.get('/mentions-legales', (req, res) => {
-  res.render('mentions-legales', { isAuthenticated: req.session.isAuthenticated || false });
+  res.send(`
+    <h1>Mentions légales</h1>
+    <p>Association Scouts & Guides de Cluses - RNA W741000XXX</p>
+    <p>Responsable : Mathéo D.</p>
+    <p>Hébergeur : OVH</p>
+    <p>RGPD respecté. Contact : contact@scouts-cluses.fr</p>
+    <p><a href="/">Retour</a></p>
+  `);
 });
 
-app.post('/inscription', upload.fields([
-  { name: 'vaccinScan', maxCount: 1 },
-  { name: 'medicationScan', maxCount: 1 },
-  { name: 'recommendationMedicalScan', maxCount: 1 },
-  { name: 'otherDocuments', maxCount: 10 }
-]), async (req, res) => {
-  try {
-    const formData = req.body;
-    const files = req.files;
-
-    // Validate form data
-    if (!formData.nom || !formData.prenom || !formData.categorie) {
-      return res.status(400).json({ message: 'Nom, prénom et catégorie sont requis.' });
-    }
-    const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,}$/;
-    if (!nameRegex.test(formData.nom)) {
-      return res.status(400).json({ message: 'Le nom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
-    }
-    if (!nameRegex.test(formData.prenom)) {
-      return res.status(400).json({ message: 'Le prénom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
-    }
-    // Validation plus tolérante pour "Lu et approuvé"
-    const requiredText = 'lu et approuvé';
-    const luEtApprouveDroitImage = (formData.luEtApprouveDroitImageText || '').trim().toLowerCase();
-    const luEtApprouveInscription = (formData.luEtApprouveInscriptionText || '').trim().toLowerCase();
-
-    if (luEtApprouveDroitImage !== requiredText || luEtApprouveInscription !== requiredText) {
-      return res.status(400).json({ message: 'Veuillez saisir "Lu et approuvé" dans les champs correspondants (insensible à la casse et aux espaces).' });
-    }
-    if (!formData.signatureDroitImage || !formData.signatureSanitaire) {
-      return res.status(400).json({ message: 'Les signatures sont requises.' });
-    }
-    if (!['scout', 'guide', 'louveteau'].includes(formData.categorie)) {
-      return res.status(400).json({ message: 'Catégorie invalide.' });
-    }
-
-    // Upload files to Cloudinary
-    const uploadToCloudinary = async (file, folder, resourceType = 'raw') => {
-      if (!file) return '';
-      return new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            resource_type: resourceType,
-            folder: `scouts-cluses/${folder}`,
-            public_id: `${Date.now()}_${file.originalname || 'document'}`
-          },
-          (error, result) => {
-            if (error) {
-              console.error(`Erreur lors de l'upload sur Cloudinary (${folder}):`, error);
-              return reject(error);
-            }
-            resolve(result.secure_url);
-          }
-        ).end(file.buffer);
-      });
-    };
-
-    // Process file uploads
-    formData.vaccinScan = files.vaccinScan ? await uploadToCloudinary(files.vaccinScan[0], 'uploads', 'auto') : '';
-    formData.medicationScan = files.medicationScan ? await uploadToCloudinary(files.medicationScan[0], 'uploads', 'auto') : '';
-    formData.recommendationMedicalScan = files.recommendationMedicalScan ? await uploadToCloudinary(files.recommendationMedicalScan[0], 'uploads', 'auto') : '';
-    formData.otherDocuments = files.otherDocuments ? await Promise.all(files.otherDocuments.map(file => uploadToCloudinary(file, 'uploads', 'auto'))) : [];
-
-    // Generate and upload PDFs
-    formData.vaccinsRecommandes = {
-      diphtérie: formData.vaccinsDiphtérie || '',
-      coqueluche: formData.vaccinsCoqueluche || '',
-      tétanos: formData.vaccinsTétanos || '',
-      haemophilus: formData.vaccinsHaemophilus || '',
-      poliomyélite: formData.vaccinsPoliomyélite || '',
-      rougeole: formData.vaccinsRougeole || '',
-      pneumocoque: formData.vaccinsPneumocoque || '',
-      bcg: formData.vaccinsBCG || '',
-      autres: formData.vaccinsAutres || ''
-    };
-
-    const authPdfBuffer = await generatePdfBuffer(formData, 'auth');
-    const authPdfUrl = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          folder: 'scouts-cluses/pdfs',
-          public_id: `autorisation_${formData.nom}_${Date.now()}.pdf`
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Erreur lors de l\'upload du PDF d\'autorisation:', error);
-            return reject(error);
-          }
-          resolve(result.secure_url);
-        }
-      ).end(authPdfBuffer);
-    });
-
-    const sanitaryPdfBuffer = await generatePdfBuffer(formData, 'sanitary');
-    const sanitaryPdfUrl = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          folder: 'scouts-cluses/pdfs',
-          public_id: `fiche_sanitaire_${formData.nom}_${Date.now()}.pdf`
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Erreur lors de l\'upload du PDF sanitaire:', error);
-            return reject(error);
-          }
-          resolve(result.secure_url);
-        }
-      ).end(sanitaryPdfBuffer);
-    });
-
-    // Save to MongoDB
-    let Model;
-    switch (formData.categorie) {
-      case 'scout':
-        Model = Scout;
-        break;
-      case 'guide':
-        Model = Guide;
-        break;
-      case 'louveteau':
-        Model = Louveteau;
-        break;
-      default:
-        return res.status(400).json({ message: 'Catégorie invalide.' });
-    }
-
-    const inscription = new Model({
-      nom: formData.nom,
-      prenom: formData.prenom,
-      dateNaissance: new Date(formData.dateNaissance),
-      sexe: formData.sexe,
-      age: Number(formData.age),
-      adresse: formData.adresse,
-      ville: formData.ville,
-      codePostal: formData.codePostal,
-      email: formData.email,
-      telDomicile: formData.telDomicile || '',
-      telPortable: formData.telPortable,
-      contactUrgence: {
-        nom: formData.contactUrgenceNom,
-        prenom: formData.contactUrgencePrenom,
-        telPortable: formData.contactUrgenceTel,
-        sexe: formData.contactUrgenceSexe,
-        lien: formData.contactUrgenceLien
-      },
-      contactUrgenceSecondaire: {
-        nom: formData.contactUrgenceSecondaireNom || null,
-        prenom: formData.contactUrgenceSecondairePrenom || null,
-        telPortable: formData.contactUrgenceSecondaireTel || null,
-        sexe: formData.contactUrgenceSecondaireSexe || null,
-        lien: formData.contactUrgenceSecondaireLien || null
-      },
-      autreClub: formData.autreClub === 'true',
-      nomAutreClub: formData.autreClub === 'true' ? formData.nomAutreClub : null,
-      parentNomPrenom: formData.parentNomPrenom,
-      parentAdresse: formData.parentAdresse,
-      parentEmail: formData.parentEmail,
-      droitImage: formData.droitImage === 'on',
-      droitDiffusion: formData.droitDiffusion === 'on',
-      autorisationTransport: formData.autorisationTransport === 'on',
-      luEtApprouveDroitImageText: formData.luEtApprouveDroitImageText,
-      luEtApprouveInscriptionText: formData.luEtApprouveInscriptionText,
-      signatureDroitImage: formData.signatureDroitImage,
-      signatureDroitImageDate: new Date(),
-      signatureInscription: formData.signatureSanitaire,
-      signatureInscriptionDate: new Date(),
-      lieuInscription: formData.lieuInscription,
-      vaccinsObligatoires: formData.vaccinsObligatoires === 'on',
-      vaccinsRecommandes: formData.vaccinsRecommandes,
-      traitementMedical: formData.traitementMedical === 'on',
-      allergiesAlimentaires: formData.allergiesAlimentaires === 'on',
-      allergiesMedicament: formData.allergiesMedicament === 'on',
-      allergiesAutres: formData.allergiesAutres === 'on',
-      allergiesDetails: formData.allergiesDetails || '',
-      problemeSante: formData.problemeSante === 'on',
-      problemeSanteDetails: formData.problemeSanteDetails || '',
-      recommandationsParents: formData.recommandationsParents || '',
-      responsable1Nom: formData.responsable1Nom,
-      responsable1Prenom: formData.responsable1Prenom,
-      responsable1Adresse: formData.responsable1Adresse,
-      responsable1TelDomicile: formData.responsable1TelDomicile || '',
-      responsable1TelTravail: formData.responsable1TelTravail || '',
-      responsable1TelPortable: formData.responsable1TelPortable,
-      responsable2Nom: formData.responsable2Nom || '',
-      responsable2Prenom: formData.responsable2Prenom || '',
-      responsable2Adresse: formData.responsable2Adresse || '',
-      responsable2TelDomicile: formData.responsable2TelDomicile || '',
-      responsable2TelTravail: formData.responsable2TelTravail || '',
-      responsable2TelPortable: formData.responsable2TelPortable || '',
-      medecinTraitant: formData.medecinTraitant || '',
-      signatureSanitaire: formData.signatureSanitaire,
-      signatureSanitaireDate: new Date(),
-      remarqueSection1: formData.remarqueSection1 || '',
-      remarqueSection2: formData.remarqueSection2 || '',
-      remarqueSection3: formData.remarqueSection3 || '',
-      remarqueSection4: formData.remarqueSection4 || '',
-      remarqueSection5: formData.remarqueSection5 || '',
-      vaccinScan: formData.vaccinScan,
-      medicationScan: formData.medicationScan,
-      recommendationMedicalScan: formData.recommendationMedicalScan,
-      otherDocuments: formData.otherDocuments,
-      pdfPath: authPdfUrl,
-      sanitaryPdfPath: sanitaryPdfUrl
-    });
-
-    await inscription.save();
-    res.json({
-      message: 'Inscription enregistrée avec succès !',
-      pdfUrl: authPdfUrl,
-      sanitaryPdfUrl: sanitaryPdfUrl
-    });
-  } catch (err) {
-    console.error('Erreur lors de l’inscription:', err);
-    res.status(400).json({ message: `Erreur lors de l’inscription : ${err.message || err}` });
-  }
-});
-
-// Route de login
-app.get('/login', (req, res) => {
-  console.log('GET /login, Session ID:', req.sessionID, 'Session:', req.session);
-  res.render('login', { error: null });
-});
-
-app.post('/login', async (req, res) => {
-  const password = req.body.password;
-  if (!password) {
-    console.log('Login failed: No password provided');
-    return res.render('login', { error: 'Veuillez entrer un mot de passe' });
-  }
-
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'JaimeLeScoutisme123SauflesSDF';
-  console.log('Login attempt:', { password, ADMIN_PASSWORD, sessionID: req.sessionID });
-
-  if (password === ADMIN_PASSWORD) {
-    req.session.isAuthenticated = true;
+// === INSCRIPTION ===
+app.post('/inscription',
+  upload.fields([
+    { name: 'vaccinScan', maxCount: 1 },
+    { name: 'medicationScan', maxCount: 5 },
+    { name: 'otherDocuments', maxCount: 5 }
+  ]),
+  async (req, res) => {
     try {
-      await new Promise((resolve, reject) => {
-        req.session.save(err => {
-          if (err) {
-            console.error('Erreur lors de la sauvegarde de la session:', err);
-            return reject(err);
-          }
-          console.log('Session saved:', req.session);
-          resolve();
-        });
+      const body = req.body;
+      const files = req.files || {};
+
+      // Validation
+      if (!body.nom || !body.prenom || !body.dateNaissance || !body.categorie) {
+        return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
+      }
+
+      const categorie = body.categorie.toLowerCase();
+      if (!['scout', 'guide', 'louveteau'].includes(categorie)) {
+        return res.status(400).json({ success: false, message: 'Catégorie invalide' });
+      }
+
+      const Model = models[categorie];
+      const birthDate = new Date(body.dateNaissance);
+      const age = getAge(birthDate);
+
+      const ageLimits = {
+        scout: { min: 11, max: 17 },
+        guide: { min: 11, max: 17 },
+        louveteau: { min: 8, max: 11 }
+      };
+      if (age < ageLimits[categorie].min || age > ageLimits[categorie].max) {
+        return res.status(400).json({ success: false, message: `Âge non conforme pour ${categorie}` });
+      }
+
+      const clean = (field) => sanitizeInput(body[field] || '');
+      const cleanBool = (field) => body[field] === 'on' || body[field] === true;
+
+      const data = {
+        nom: clean('nom'),
+        prenom: clean('prenom'),
+        dateNaissance: birthDate,
+        sexe: body.sexe,
+        age,
+        adresse: clean('adresse') || `${clean('ville')} ${clean('codePostal')}`,
+        ville: clean('ville'),
+        codePostal: clean('codePostal'),
+        email: clean('email') || clean('parentEmail'),
+        telDomicile: clean('telDomicile'),
+        telPortable: clean('telPortable'),
+        contactUrgence: {
+          nom: clean('contactUrgenceNom'),
+          prenom: clean('contactUrgencePrenom'),
+          telPortable: clean('contactUrgenceTel'),
+          sexe: body.contactUrgenceSexe,
+          lien: body.contactUrgenceLien
+        },
+        contactUrgenceSecondaire: body.contactUrgenceSecondaireNom ? {
+          nom: clean('contactUrgenceSecondaireNom'),
+          prenom: clean('contactUrgenceSecondairePrenom'),
+          telPortable: clean('contactUrgenceSecondaireTel'),
+          sexe: body.contactUrgenceSecondaireSexe,
+          lien: body.contactUrgenceSecondaireLien
+        } : null,
+        autreClub: cleanBool('autreClub'),
+        nomAutreClub: clean('nomAutreClub'),
+        parentNomPrenom: clean('parentNomPrenom') || `${clean('responsable1Nom')} ${clean('responsable1Prenom')}`,
+        parentAdresse: clean('parentAdresse'),
+        parentEmail: clean('parentEmail'),
+        droitImage: cleanBool('droitImage'),
+        droitDiffusion: cleanBool('droitDiffusion') || cleanBool('droitImage'),
+        autorisationTransport: cleanBool('autorisationTransport'),
+        luEtApprouveDroitImageText: 'Lu et approuvé',
+        luEtApprouveInscriptionText: 'Lu et approuvé',
+        signatureDroitImage: body.signatureDroitImage,
+        signatureDroitImageDate: new Date(),
+        signatureInscription: body.signatureDroitImage,
+        signatureInscriptionDate: new Date(),
+        lieuInscription: clean('lieuInscription') || 'Cluses',
+        dateInscription: new Date(),
+
+        // Fiche sanitaire
+        vaccinsObligatoires: true,
+        vaccinsRecommandes: {
+          diphtérie: body.vaccinDiphtérie || 'OK',
+          coqueluche: body.vaccinCoqueluche || 'OK',
+          tétanos: body.vaccinTétanos || 'OK',
+          haemophilus: body.vaccinHaemophilus || 'OK',
+          poliomyélite: body.vaccinPoliomyélite || 'OK',
+          rougeole: body.vaccinRougeole || 'OK',
+          pneumocoque: body.vaccinPneumocoque || 'OK',
+          bcg: body.vaccinBcg || 'OK',
+          autres: clean('vaccinsAutres')
+        },
+        traitementMedical: cleanBool('traitementMedical'),
+        allergiesAlimentaires: cleanBool('allergiesAlimentaires'),
+        allergiesMedicament: cleanBool('allergiesMedicament'),
+        allergiesAutres: cleanBool('allergiesAutres'),
+        allergiesDetails: clean('allergiesDetails'),
+        problemeSante: cleanBool('problemeSante'),
+        problemeSanteDetails: clean('problemeSanteDetails'),
+        recommandationsParents: clean('recommandationsParents'),
+        responsable1Nom: clean('responsable1Nom'),
+        responsable1Prenom: clean('responsable1Prenom'),
+        responsable1Adresse: clean('responsable1Adresse'),
+        responsable1TelDomicile: clean('responsable1TelDomicile'),
+        responsable1TelTravail: clean('responsable1TelTravail'),
+        responsable1TelPortable: clean('responsable1TelPortable'),
+        responsable2Nom: clean('responsable2Nom'),
+        responsable2Prenom: clean('responsable2Prenom'),
+        responsable2Adresse: clean('responsable2Adresse'),
+        responsable2TelDomicile: clean('responsable2TelDomicile'),
+        responsable2TelTravail: clean('responsable2TelTravail'),
+        responsable2TelPortable: clean('responsable2TelPortable'),
+        medecinTraitant: clean('medecinTraitant'),
+        signatureSanitaire: body.signatureSanitaire || body.signatureDroitImage,
+        signatureSanitaireDate: new Date(),
+
+        vaccinScan: files.vaccinScan?.[0]?.filename,
+        medicationScan: files.medicationScan?.[0]?.filename,
+        otherDocuments: files.otherDocuments?.map(f => f.filename) || []
+      };
+
+      const inscrit = await new Model(data).save();
+
+      // === PDF ===
+      const pdfId = uuidv4();
+      const authPdfPath = path.join(PDF_DIR, `${pdfId}-auth.pdf`);
+      const sanitaryPdfPath = path.join(PDF_DIR, `${pdfId}-sanitary.pdf`);
+
+      await generateAuthPdf(data, authPdfPath);
+      await generateSanitaryPdf(data, sanitaryPdfPath);
+
+      inscrit.pdfPath = `/pdfs/${path.basename(authPdfPath)}`;
+      inscrit.sanitaryPdfPath = `/pdfs/${path.basename(sanitaryPdfPath)}`;
+      await inscrit.save();
+
+      res.json({
+        success: true,
+        message: 'Inscription réussie ! PDF générés.',
+        pdfUrl: inscrit.pdfPath,
+        sanitaryPdfUrl: inscrit.sanitaryPdfPath
       });
-      res.redirect('/');
+
     } catch (err) {
-      res.status(500).json({ message: 'Erreur serveur lors de la connexion' });
+      console.error('Erreur:', err);
+      res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
-  } else {
-    console.log('Login failed: Incorrect password');
-    res.render('login', { error: 'Mot de passe incorrect' });
   }
-});
+);
 
-// Route de logout
-app.get('/logout', (req, res) => {
-  console.log('Logout, Session ID:', req.sessionID);
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Erreur lors de la déconnexion:', err);
-      return res.status(500).json({ message: 'Erreur serveur lors de la déconnexion' });
+// === PDF ===
+async function generateAuthPdf(data, outputPath) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const stream = fs.createWriteStream(outputPath);
+    doc.pipe(stream);
+
+    const logoPath = path.join(__dirname, 'public', 'images', 'logo-scouts.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 30, { width: 60 });
+      doc.image(logoPath, 480, 30, { width: 60 });
     }
-    res.redirect('/');
+
+    doc.fontSize(18).text('AUTORISATION DE DROIT À L\'IMAGE ET DE TRANSPORT', 0, 100, { align: 'center' });
+    doc.moveDown(2);
+
+    doc.fontSize(14).text('IDENTITÉ DE L\'ENFANT', { underline: true });
+    doc.fontSize(12)
+      .text(`Nom : ${data.nom}`)
+      .text(`Prénom : ${data.prenom}`)
+      .text(`Né(e) le : ${moment(data.dateNaissance).format('DD/MM/YYYY')}`)
+      .moveDown();
+
+    doc.fontSize(14).text('REPRÉSENTANT LÉGAL', { underline: true });
+    doc.fontSize(12)
+      .text(`Nom et prénom : ${data.parentNomPrenom}`)
+      .text(`Adresse : ${data.parentAdresse}`)
+      .text(`Téléphone : ${data.telPortable}`)
+      .moveDown();
+
+    doc.fontSize(14).text('DROIT À L\'IMAGE', { underline: true });
+    doc.fontSize(11).text(
+      `J'autorise les Scouts et Guides de Cluses à réaliser des photos et vidéos de mon enfant dans le cadre des activités. ` +
+      `J'autorise leur diffusion interne, sur le site web et les réseaux sociaux, à des fins de communication. ` +
+      `Cette autorisation est donnée à titre gracieux, pour une durée illimitée, dans le respect du RGPD.`
+    );
+    doc.moveDown();
+
+    doc.fontSize(14).text('TRANSPORT', { underline: true });
+    doc.fontSize(11).text(
+      `J'autorise mon enfant à être transporté dans des véhicules conduits par des responsables bénévoles.`
+    );
+    doc.moveDown(3);
+
+    if (data.signatureDroitImage) {
+      const imgData = data.signatureDroitImage.replace(/^data:image\/\w+;base64,/, '');
+      doc.image(Buffer.from(imgData, 'base64'), 70, doc.y, { width: 180 });
+    }
+
+    doc.fontSize(10)
+      .text(`Fait à : ${data.lieuInscription}`, 70, doc.y + 60)
+      .text(`Le : ${moment().format('DD/MM/YYYY')}`, 70, doc.y + 20);
+
+    doc.end();
+    stream.on('finish', resolve);
+    stream.on('error', reject);
   });
-});
+}
 
-// Routes protégées
-app.get('/scouts', requireAuth, async (req, res) => {
-  try {
-    const scouts = await Scout.find();
-    res.render('list', { inscriptions: scouts, titre: 'Scouts' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des scouts:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des scouts.' });
-  }
-});
+async function generateSanitaryPdf(data, outputPath) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const stream = fs.createWriteStream(outputPath);
+    doc.pipe(stream);
 
-app.get('/guides', requireAuth, async (req, res) => {
-  try {
-    const guides = await Guide.find();
-    res.render('list', { inscriptions: guides, titre: 'Guides' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des guides:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des guides.' });
-  }
-});
+    doc.fontSize(18).text('FICHE SANITAIRE', 0, 100, { align: 'center' });
+    doc.moveDown(2);
 
-app.get('/louveteaux', requireAuth, async (req, res) => {
-  try {
-    const louveteaux = await Louveteau.find();
-    res.render('list', { inscriptions: louveteaux, titre: 'Louveteaux' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des louveteaux:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des louveteaux.' });
-  }
-});
+    doc.fontSize(12)
+      .text(`Enfant : ${data.prenom} ${data.nom} - ${data.age} ans`)
+      .text(`Responsable : ${data.parentNomPrenom}`)
+      .text(`Téléphone : ${data.telPortable}`)
+      .moveDown();
 
-// Test route for Cloudinary
-app.get('/test-cloudinary', async (req, res) => {
-  try {
-    const result = await cloudinary.uploader.upload('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==', {
-      folder: 'scouts-cluses/test',
-      resource_type: 'image'
-    });
-    res.json({ success: true, url: result.secure_url });
-  } catch (err) {
-    console.error('Erreur lors du test Cloudinary:', err);
-    res.status(500).json({ message: 'Erreur lors du test Cloudinary : ' + (err.message || err) });
-  }
-});
+    doc.fontSize(14).text('SANTÉ', { underline: true });
+    doc.fontSize(11)
+      .text(`Traitement : ${data.traitementMedical ? 'Oui' : 'Non'}`)
+      .text(`Allergies : ${data.allergiesAlimentaires || data.allergiesMedicament ? 'Oui - ' + data.allergiesDetails : 'Non'}`)
+      .text(`Problème : ${data.problemeSante ? 'Oui - ' + data.problemeSanteDetails : 'Non'}`)
+      .moveDown();
 
-app.listen(port, () => {
-  console.log(`Serveur lancé sur le port ${port}`);
+    if (data.signatureSanitaire) {
+      const imgData = data.signatureSanitaire.replace(/^data:image\/\w+;base64,/, '');
+      doc.image(Buffer.from(imgData, 'base64'), 70, doc.y, { width: 180 });
+    }
+
+    doc.end();
+    stream.on('finish', resolve);
+    stream.on('error', reject);
+  });
+}
+
+// === LANCEMENT ===
+app.listen(PORT, () => {
+  console.log(`Serveur sur http://localhost:${PORT}`);
 });

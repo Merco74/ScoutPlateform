@@ -1,640 +1,208 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Inscription - Scouts et Guides de Cluses</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription Scouts Cluses</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/styles.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <a href="/" class="btn btn-secondary mb-4"><i class="bi bi-arrow-left me-2"></i>Retour à l'accueil</a>
-        <h1>Inscription au mouvement Scouts et Guides de Cluses</h1>
-        <div id="error-message" class="alert alert-danger d-none"></div>
-        <form action="/inscription" method="POST" id="inscriptionForm" enctype="multipart/form-data">
-            <!-- Section 1 : Personne inscrite -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-person-fill me-2"></i>Section 1 : Personne inscrite
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="nom" name="nom" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="prenom" name="prenom" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="dateNaissance" class="form-label">Date de naissance</label>
-                            <input type="date" class="form-control" id="dateNaissance" name="dateNaissance" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="sexe" class="form-label">Sexe</label>
-                            <select class="form-select" id="sexe" name="sexe" required>
-                                <option value="">Choisir...</option>
-                                <option value="Masculin">Masculin</option>
-                                <option value="Féminin">Féminin</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="age" class="form-label">Âge</label>
-                        <input type="number" class="form-control" id="age" name="age" min="6" max="18" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="adresse" class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="adresse" name="adresse" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="ville" class="form-label">Ville</label>
-                            <input type="text" class="form-control" id="ville" name="ville" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="codePostal" class="form-label">Code postal</label>
-                            <input type="text" class="form-control" id="codePostal" name="codePostal" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="telDomicile" class="form-label">Téléphone domicile (facultatif)</label>
-                            <input type="tel" class="form-control" id="telDomicile" name="telDomicile">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="telPortable" class="form-label">Téléphone portable</label>
-                            <input type="tel" class="form-control" id="telPortable" name="telPortable" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="remarqueSection1" class="form-label">Remarques des parents</label>
-                        <textarea class="form-control" id="remarqueSection1" name="remarqueSection1" rows="3"></textarea>
-                    </div>
-                </div>
-            </div>
+  <button class="help-button" data-bs-toggle="modal" data-bs-target="#helpModal">
+    <i class="bi bi-headset"></i>
+  </button>
 
-            <!-- Section 2 : Personnes à prévenir en cas d'urgence -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-telephone-fill me-2"></i>Section 2 : Personnes à prévenir en cas d'urgence
-                </div>
-                <div class="card-body">
-                    <h5 class="mb-3">Personne principale (obligatoire)</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceNom" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="contactUrgenceNom" name="contactUrgenceNom" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgencePrenom" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="contactUrgencePrenom" name="contactUrgencePrenom" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceTel" class="form-label">Téléphone portable</label>
-                            <input type="tel" class="form-control" id="contactUrgenceTel" name="contactUrgenceTel" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceSexe" class="form-label">Sexe</label>
-                            <select class="form-select" id="contactUrgenceSexe" name="contactUrgenceSexe" required>
-                                <option value="">Choisir...</option>
-                                <option value="Homme">Homme</option>
-                                <option value="Femme">Femme</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contactUrgenceLien" class="form-label">Lien avec l'enfant</label>
-                        <select class="form-select" id="contactUrgenceLien" name="contactUrgenceLien" required>
-                            <option value="">Choisir...</option>
-                            <option value="Parents">Parents</option>
-                            <option value="Famille">Famille</option>
-                            <option value="Tuteur légal">Tuteur légal</option>
-                        </select>
-                    </div>
-                    <h5 class="mb-3">Personne secondaire (facultatif)</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceSecondaireNom" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="contactUrgenceSecondaireNom" name="contactUrgenceSecondaireNom">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceSecondairePrenom" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="contactUrgenceSecondairePrenom" name="contactUrgenceSecondairePrenom">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceSecondaireTel" class="form-label">Téléphone portable</label>
-                            <input type="tel" class="form-control" id="contactUrgenceSecondaireTel" name="contactUrgenceSecondaireTel">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contactUrgenceSecondaireSexe" class="form-label">Sexe</label>
-                            <select class="form-select" id="contactUrgenceSecondaireSexe" name="contactUrgenceSecondaireSexe">
-                                <option value="">Choisir...</option>
-                                <option value="Homme">Homme</option>
-                                <option value="Femme">Femme</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contactUrgenceSecondaireLien" class="form-label">Lien avec l'enfant</label>
-                        <select class="form-select" id="contactUrgenceSecondaireLien" name="contactUrgenceSecondaireLien">
-                            <option value="">Choisir...</option>
-                            <option value="Parents">Parents</option>
-                            <option value="Famille">Famille</option>
-                            <option value="Tuteur légal">Tuteur légal</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="remarqueSection2" class="form-label">Remarques des parents</label>
-                        <textarea class="form-control" id="remarqueSection2" name="remarqueSection2" rows="3"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 3 : Autres informations -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-info-circle-fill me-2"></i>Section 3 : Autres informations
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Êtes-vous inscrit dans un autre club des Scouts de Cluses ?</label>
-                        <div class="form-check">
-                            <input type="radio" class="form-check-input" id="autreClubOui" name="autreClub" value="true" required>
-                            <label class="form-check-label" for="autreClubOui">Oui</label>
-                        </div>
-                        <div class="form-check">
-                            <input type="radio" class="form-check-input" id="autreClubNon" name="autreClub" value="false" required>
-                            <label class="form-check-label" for="autreClubNon">Non</label>
-                        </div>
-                    </div>
-                    <div class="mb-3" id="nomAutreClubDiv" style="display: none;">
-                        <label for="nomAutreClub" class="form-label">Si oui, lequel ?</label>
-                        <input type="text" class="form-control" id="nomAutreClub" name="nomAutreClub">
-                    </div>
-                    <div class="mb-3">
-                        <label for="remarqueSection3" class="form-label">Remarques des parents</label>
-                        <textarea class="form-control" id="remarqueSection3" name="remarqueSection3" rows="3"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 4 : Autorisation de droit à l'image et de transport -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-camera-fill me-2"></i>Section 4 : Autorisation de droit à l'image et de transport
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="parentNomPrenom" class="form-label">Je soussigné.e (Nom et Prénom du parent)</label>
-                        <input type="text" class="form-control" id="parentNomPrenom" name="parentNomPrenom" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="parentAdresse" class="form-label">Demeurant (Adresse)</label>
-                        <input type="text" class="form-control" id="parentAdresse" name="parentAdresse" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="parentEmail" class="form-label">Adresse email</label>
-                        <input type="email" class="form-control" id="parentEmail" name="parentEmail" required>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="droitImage" name="droitImage" required>
-                            <label class="form-check-label" for="droitImage">
-                                J'autorise les Scouts de Cluses et les Guides de Cluses à effectuer des prises de vue photographiques ou des enregistrements audiovisuels sur lesquels mon enfant pourrait apparaître.
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="droitDiffusion" name="droitDiffusion" required>
-                            <label class="form-check-label" for="droitDiffusion">
-                                J'autorise les Scouts de Cluses et les Guides de Cluses à diffuser les images captées, fixées et enregistrées sur un réseau filaire ou sans fil, de quelque nature que ce soit (utilisation interne, Internet, réseaux sociaux, presse locale).
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="alert alert-info">
-                            Ces autorisations sont consenties à titre gracieux, pour un territoire illimité et sans limitation de durée. Ces informations sont portées à ma connaissance, dans le cadre de l'application de la législation relative au respect du droit à l'image, au respect de la vie privée et dans le respect du RGPD.
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="autorisationTransport" name="autorisationTransport" required>
-                            <label class="form-check-label" for="autorisationTransport">
-                                Je consens à ce que mon enfant effectue des trajets dans le cadre des activités tout au long de l'année et du camp des Scouts de Cluses et des Guides de Cluses, d'ordre médical ou organisationnel, dans tout véhicule personnel ou de l'association, conduit par un encadrant du camp. Sans cette autorisation, je comprends que mon enfant ne pourra être transporté que par des véhicules de secours.
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="luEtApprouveDroitImageText" class="form-label">Veuillez saisir "Lu et approuvé"</label>
-                        <input type="text" class="form-control" id="luEtApprouveDroitImageText" name="luEtApprouveDroitImageText" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="signatureDroitImagePad" class="form-label">Signature</label>
-                        <canvas id="signatureDroitImagePad" class="signature-pad" width="400" height="200"></canvas>
-                        <input type="hidden" id="signatureDroitImage" name="signatureDroitImage" required>
-                        <button type="button" id="clearSignatureDroitImage" class="btn btn-secondary mt-2">Effacer la signature</button>
-                    </div>
-                    <div class="mb-3">
-                        <label for="remarqueSection4" class="form-label">Remarques des parents</label>
-                        <textarea class="form-control" id="remarqueSection4" name="remarqueSection4" rows="3"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 5 : Fiche sanitaire -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-heart-fill me-2"></i>Section 5 : Fiche sanitaire
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">DOCUMENT CONFIDENTIEL</div>
-                    <div class="mb-3">
-                        <label for="nomSanitaire" class="form-label">Nom du mineur (répété pour référence)</label>
-                        <input type="text" class="form-control" id="nomSanitaire" name="nomSanitaire" value="" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="prenomSanitaire" class="form-label">Prénom du mineur (répété pour référence)</label>
-                        <input type="text" class="form-control" id="prenomSanitaire" name="prenomSanitaire" value="" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="dateNaissanceSanitaire" class="form-label">Date de naissance (répété pour référence)</label>
-                        <input type="date" class="form-control" id="dateNaissanceSanitaire" name="dateNaissanceSanitaire" value="" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sexeSanitaire" class="form-label">Sexe (répété pour référence)</label>
-                        <select class="form-select" id="sexeSanitaire" name="sexeSanitaire" required>
-                            <option value="">Choisir...</option>
-                            <option value="Masculin">Masculin</option>
-                            <option value="Féminin">Féminin</option>
-                        </select>
-                    </div>
-
-                    <!-- 1 - Vaccination -->
-                    <h5 class="mt-4">1 - Vaccination</h5>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="vaccinsObligatoires" name="vaccinsObligatoires">
-                            <label class="form-check-label" for="vaccinsObligatoires">Vaccinations obligatoires</label>
-                        </div>
-                    </div>
-                    <div class="alert alert-info">Si non, joindre un certificat médical de contre-indication.</div>
-                    <div class="mb-3">
-                        <label class="form-label">Vaccins recommandés (dates des derniers rappels)</label>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsDiphtérie" class="form-label">Diphtérie</label>
-                                <input type="text" class="form-control" id="vaccinsDiphtérie" name="vaccinsDiphtérie">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsCoqueluche" class="form-label">Coqueluche</label>
-                                <input type="text" class="form-control" id="vaccinsCoqueluche" name="vaccinsCoqueluche">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsTétanos" class="form-label">Tétanos</label>
-                                <input type="text" class="form-control" id="vaccinsTétanos" name="vaccinsTétanos">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsHaemophilus" class="form-label">Haemophilus</label>
-                                <input type="text" class="form-control" id="vaccinsHaemophilus" name="vaccinsHaemophilus">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsPoliomyélite" class="form-label">Poliomyélite</label>
-                                <input type="text" class="form-control" id="vaccinsPoliomyélite" name="vaccinsPoliomyélite">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsRougeole" class="form-label">Rubéole-Oreillons-Rougeole</label>
-                                <input type="text" class="form-control" id="vaccinsRougeole" name="vaccinsRougeole">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsPneumocoque" class="form-label">Pneumocoque</label>
-                                <input type="text" class="form-control" id="vaccinsPneumocoque" name="vaccinsPneumocoque">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsBCG" class="form-label">BCG</label>
-                                <input type="text" class="form-control" id="vaccinsBCG" name="vaccinsBCG">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="vaccinsAutres" class="form-label">Autres (préciser)</label>
-                                <input type="text" class="form-control" id="vaccinsAutres" name="vaccinsAutres">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="vaccinScan" class="form-label">Télécharger le scan des vaccins (PDF ou image)</label>
-                        <input type="file" class="form-control" id="vaccinScan" name="vaccinScan" accept="application/pdf,image/*">
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="traitementMedical" name="traitementMedical">
-                            <label class="form-check-label" for="traitementMedical">Suit-il un traitement médical pendant le séjour ?</label>
-                        </div>
-                        <div class="alert alert-info">Si oui, joindre une ordonnance récente et les médicaments correspondants (boîtes de loisirs). Aucun médicament ne pourra être administré sans ordonnance.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="medicationScan" class="form-label">Télécharger le scan des médicaments/ordonnances (PDF ou image)</label>
-                        <input type="file" class="form-control" id="medicationScan" name="medicationScan" accept="application/pdf,image/*">
-                    </div>
-
-                    <!-- 2 - Renseignements concernant le mineur -->
-                    <h5 class="mt-4">2 - Renseignements concernant le mineur</h5>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="allergiesAlimentaires" name="allergiesAlimentaires">
-                            <label class="form-check-label" for="allergiesAlimentaires">Allergies alimentaires</label>
-                        </div>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="allergiesMedicament" name="allergiesMedicament">
-                            <label class="form-check-label" for="allergiesMedicament">Allergies médicamenteuses</label>
-                        </div>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="allergiesAutres" name="allergiesAutres">
-                            <label class="form-check-label" for="allergiesAutres">Autres (animaux, plantes, pollen)</label>
-                        </div>
-                        <div class="mb-3">
-                            <label for="allergiesDetails" class="form-label">Précisez</label>
-                            <input type="text" class="form-control" id="allergiesDetails" name="allergiesDetails">
-                        </div>
-                        <div class="alert alert-info">Si oui, joindre un certificat médical précisant la cause de l’allergie, les signes évocateurs et la conduite à tenir.</div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="problemeSante" name="problemeSante">
-                            <label class="form-check-label" for="problemeSante">Le mineur présente-t-il un problème de santé ?</label>
-                        </div>
-                        <div class="mb-3">
-                            <label for="problemeSanteDetails" class="form-label">Précisez</label>
-                            <textarea class="form-control" id="problemeSanteDetails" name="problemeSanteDetails" rows="3"></textarea>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="recommendationMedicalScan" class="form-label">Télécharger les recommandations médicales (PDF ou image)</label>
-                        <input type="file" class="form-control" id="recommendationMedicalScan" name="recommendationMedicalScan" accept="application/pdf,image/*">
-                    </div>
-
-                    <!-- 3 - Recommandations utiles des parents -->
-                    <h5 class="mt-4">3 - Recommandations utiles des parents</h5>
-                    <div class="mb-3">
-                        <label for="recommandationsParents" class="form-label">Difficultés de sommeil, énurésie nocturne, etc…</label>
-                        <textarea class="form-control" id="recommandationsParents" name="recommandationsParents" rows="3"></textarea>
-                    </div>
-
-                    <!-- 4 - Responsables du mineur -->
-                    <h5 class="mt-4">4 - Responsables du mineur</h5>
-                    <h6>Responsable N°1 (obligatoire)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="responsable1Nom" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="responsable1Nom" name="responsable1Nom" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="responsable1Prenom" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="responsable1Prenom" name="responsable1Prenom" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="responsable1Adresse" class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="responsable1Adresse" name="responsable1Adresse" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable1TelDomicile" class="form-label">Téléphone domicile</label>
-                            <input type="tel" class="form-control" id="responsable1TelDomicile" name="responsable1TelDomicile">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable1TelTravail" class="form-label">Téléphone travail</label>
-                            <input type="tel" class="form-control" id="responsable1TelTravail" name="responsable1TelTravail">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable1TelPortable" class="form-label">Téléphone portable</label>
-                            <input type="tel" class="form-control" id="responsable1TelPortable" name="responsable1TelPortable" required>
-                        </div>
-                    </div>
-                    <h6>Responsable N°2 (facultatif)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="responsable2Nom" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="responsable2Nom" name="responsable2Nom">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="responsable2Prenom" class="form-label">Prénom</label>
-                            <input type="text" class="form-control" id="responsable2Prenom" name="responsable2Prenom">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="responsable2Adresse" class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="responsable2Adresse" name="responsable2Adresse">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable2TelDomicile" class="form-label">Téléphone domicile</label>
-                            <input type="tel" class="form-control" id="responsable2TelDomicile" name="responsable2TelDomicile">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable2TelTravail" class="form-label">Téléphone travail</label>
-                            <input type="tel" class="form-control" id="responsable2TelTravail" name="responsable2TelTravail">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="responsable2TelPortable" class="form-label">Téléphone portable</label>
-                            <input type="tel" class="form-control" id="responsable2TelPortable" name="responsable2TelPortable">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="medecinTraitant" class="form-label">Nom et téléphone du médecin traitant</label>
-                        <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="luEtApprouveInscriptionText" class="form-label">Veuillez saisir "Lu et approuvé"</label>
-                        <input type="text" class="form-control" id="luEtApprouveInscriptionText" name="luEtApprouveInscriptionText" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="signatureSanitairePad" class="form-label">Signature</label>
-                        <canvas id="signatureSanitairePad" class="signature-pad" width="400" height="200"></canvas>
-                        <input type="hidden" id="signatureSanitaire" name="signatureSanitaire" required>
-                        <button type="button" id="clearSignatureSanitaire" class="btn btn-secondary mt-2">Effacer la signature</button>
-                    </div>
-                    <div class="mb-3">
-                        <label for="lieuInscription" class="form-label">Fait à</label>
-                        <input type="text" class="form-control" id="lieuInscription" name="lieuInscription" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Le</label>
-                        <input type="text" class="form-control" value="<%= new Date().toLocaleDateString('fr-FR') %>" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="otherDocuments" class="form-label">Autres documents utiles (PDF ou images, max 10)</label>
-                        <input type="file" class="form-control" id="otherDocuments" name="otherDocuments" accept="application/pdf,image/*" multiple>
-                    </div>
-                    <div class="mb-3">
-                        <label for="remarqueSection5" class="form-label">Remarques des parents</label>
-                        <textarea class="form-control" id="remarqueSection5" name="remarqueSection5" rows="3"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Catégorie -->
-            <div class="card form-section">
-                <div class="card-header">
-                    <i class="bi bi-list-check me-2"></i>Catégorie
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="categorie" class="form-label">Catégorie</label>
-                        <select class="form-select" id="categorie" name="categorie" required>
-                            <option value="">Choisir...</option>
-                            <option value="scout">Scout</option>
-                            <option value="guide">Guide</option>
-                            <option value="louveteau">Louveteau</option>
-                        </select>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
-                        <label class="form-check-label" for="acceptRGPD">
-                            J’accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a>
-                        </label>
-                    </div>
-                    <div class="form-text mt-3">
-                        La cotisation à l'année est fixée à 20 euros. Vous pouvez la payer soit en espèces lors d'une sortie, soit par chèques à l'ordre des "Scouts de Cluses" (en précisant "Cotisation année pour Nom de votre enfant").
-                    </div>
-                    <div class="form-text">
-                        Vous pouvez également régler la cotisation via virement bancaire : IBAN : FR76 1680 7000 3085 8868 0119 504 - Titulaire du compte : ASS SCOUTS AUTONOME SAVOYARDS - Envoyer un message à Mathéo (06.72.44.49.92) précisant que vous avez effectué le règlement par virement.
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-between mt-4">
-                <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left me-2"></i>Retour à l'accueil</a>
-                <button type="submit" class="btn btn-primary btn-lg">S'inscrire</button>
-            </div>
-        </form>
+  <div class="container">
+    <div class="hero">
+      <h1>Inscription Scouts & Guides de Cluses</h1>
+      <p>3 étapes simples • Tout est sécurisé • Aide immédiate</p>
     </div>
-    <footer class="text-center mt-5 mb-3">
-        <small>
-            Mentions légales : Ce site est géré par les Scouts et Guides de Cluses. Les données personnelles sont protégées par le RGPD (Règlement (UE) 2016/679). Les signatures électroniques sont conformes au règlement eIDAS (Règlement (UE) n° 910/2014). Les documents sont stockés de manière sécurisée. Date de mise à jour : 09/09/2025.
-        </small>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Afficher/masquer champ nomAutreClub
-        const autreClubOui = document.getElementById('autreClubOui');
-        const autreClubNon = document.getElementById('autreClubNon');
-        const nomAutreClubDiv = document.getElementById('nomAutreClubDiv');
-        autreClubOui.addEventListener('change', () => {
-            nomAutreClubDiv.style.display = autreClubOui.checked ? 'block' : 'none';
-        });
-        autreClubNon.addEventListener('change', () => {
-            nomAutreClubDiv.style.display = autreClubNon.checked ? 'none' : 'block';
-        });
 
-        // Initialisation des signatures
-        const signatureDroitImagePad = new SignaturePad(document.getElementById('signatureDroitImagePad'), {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-        const signatureSanitairePad = new SignaturePad(document.getElementById('signatureSanitairePad'), {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-
-        // Effacer les signatures
-        document.getElementById('clearSignatureDroitImage').addEventListener('click', () => {
-            signatureDroitImagePad.clear();
-            document.getElementById('signatureDroitImage').value = '';
-        });
-        document.getElementById('clearSignatureSanitaire').addEventListener('click', () => {
-            signatureSanitairePad.clear();
-            document.getElementById('signatureSanitaire').value = '';
-        });
-
-        // Validation et envoi des signatures
-        const form = document.getElementById('inscriptionForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.classList.add('d-none');
-            errorMessage.textContent = '';
-
-            const luEtApprouveDroitImageText = document.getElementById('luEtApprouveDroitImageText').value;
-            const luEtApprouveInscriptionText = document.getElementById('luEtApprouveInscriptionText').value;
-            const signatureDroitImageData = signatureDroitImagePad.toDataURL();
-            const signatureSanitaireData = signatureSanitairePad.toDataURL();
-
-            if (luEtApprouveDroitImageText !== 'Lu et approuvé' || luEtApprouveInscriptionText !== 'Lu et approuvé') {
-                errorMessage.textContent = 'Veuillez saisir exactement "Lu et approuvé" dans les champs correspondants.';
-                errorMessage.classList.remove('d-none');
-                return;
-            }
-
-            if (signatureDroitImagePad.isEmpty() || signatureSanitairePad.isEmpty()) {
-                errorMessage.textContent = 'Veuillez fournir une signature pour chaque section.';
-                errorMessage.classList.remove('d-none');
-                return;
-            }
-
-            document.getElementById('signatureDroitImage').value = signatureDroitImageData;
-            document.getElementById('signatureSanitaire').value = signatureSanitaireData;
-
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Envoi en cours...';
-
-            try {
-                const response = await fetch('/inscription', {
-                    method: 'POST',
-                    body: new FormData(form)
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(`${result.message}\nAutorisation PDF: ${result.pdfUrl}\nFiche Sanitaire PDF: ${result.sanitaryPdfUrl}`);
-                    window.location.href = '/';
-                } else {
-                    errorMessage.textContent = result.message || 'Erreur lors de l’envoi du formulaire.';
-                    errorMessage.classList.remove('d-none');
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Erreur lors de l’envoi du formulaire : ' + (error.message || 'Erreur inconnue');
-                errorMessage.classList.remove('d-none');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'S\'inscrire';
-            }
-        });
-
-        // Synchronisation en temps réel
-        document.getElementById('nom').addEventListener('input', function() {
-            document.getElementById('nomSanitaire').value = this.value;
-        });
-        document.getElementById('prenom').addEventListener('input', function() {
-            document.getElementById('prenomSanitaire').value = this.value;
-        });
-        document.getElementById('dateNaissance').addEventListener('input', function() {
-            document.getElementById('dateNaissanceSanitaire').value = this.value;
-        });
-        document.getElementById('sexe').addEventListener('change', function() {
-            document.getElementById('sexeSanitaire').value = this.value;
-        });
-    </script>
-    <footer class="text-center mt-5 mb-3">
-        <div>
-            &copy; 2025 Scouts de Cluses. Tous droits réservés.<br>
-            <a href="/mentions-legales" style="color:#2e7d32;text-decoration:underline;">Mentions légales</a>
+    <form id="inscriptionForm" enctype="multipart/form-data">
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-step active" data-step="1">Qui ?</div>
+          <div class="progress-line"></div>
+          <div class="progress-step" data-step="2">Santé</div>
+          <div class="progress-line"></div>
+          <div class="progress-step" data-step="3">Finaliser</div>
         </div>
-    </footer>
+        <div class="text-center"><span id="progressText" class="fw-bold fs-5">Étape 1 sur 3</span></div>
+      </div>
+
+      <!-- ÉTAPE 1 -->
+      <div class="step-card active" data-step="1">
+        <h2><span class="step-number">1</span> Qui s'inscrit ?</h2>
+        <div class="row g-4">
+          <div class="col-md-6"><div class="form-floating-custom"><input type="text" class="form-control" id="nom" name="nom" required><label>Nom</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><input type="text" class="form-control" id="prenom" name="prenom" required><label>Prénom</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><input type="date" class="form-control" id="dateNaissance" name="dateNaissance" required><label>Date de naissance</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><input type="number" class="form-control" id="age" name="age" min="6" max="18" required><label>Âge</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><select class="form-select" id="sexe" name="sexe" required><option value="">Choisir</option><option value="Masculin">Masculin</option><option value="Féminin">Féminin</option></select><label>Sexe</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><select class="form-select" id="categorie" name="categorie" required><option value="">Choisir</option><option value="scout">Scouts (11-17)</option><option value="guide">Guides (11-17)</option><option value="louveteau">Louveteaux (8-11)</option></select><label>Groupe</label></div></div>
+          <div class="col-12"><div class="form-floating-custom"><input type="tel" class="form-control" id="telPortable" name="telPortable" required><label>Téléphone parent (06...)</label></div></div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 -->
+      <div class="step-card" data-step="2">
+        <h2><span class="step-number">2</span> Santé & Autorisations</h2>
+        <div class="alert alert-warning-custom">Document confidentiel - RGPD respecté</div>
+
+        <div class="row g-4">
+          <div class="col-md-4"><div class="form-check form-switch p-3 bg-light rounded-3"><input class="form-check-input" type="checkbox" id="allergiesAlimentaires" name="allergiesAlimentaires"><label class="form-check-label ms-3 fs-5">Allergies alimentaires</label></div></div>
+          <div class="col-md-4"><div class="form-check form-switch p-3 bg-light rounded-3"><input class="form-check-input" type="checkbox" id="allergiesMedicament" name="allergiesMedicament"><label class="form-check-label ms-3 fs-5">Allergies médicaments</label></div></div>
+          <div class="col-md-4"><div class="form-check form-switch p-3 bg-light rounded-3"><input class="form-check-input" type="checkbox" id="problemeSante" name="problemeSante"><label class="form-check-label ms-3 fs-5">Problème de santé</label></div></div>
+        </div>
+
+        <div class="mt-4"><div class="form-floating-custom"><textarea class="form-control" id="allergiesDetails" name="allergiesDetails" rows="2"></textarea><label>Détails (facultatif)</label></div></div>
+
+        <div class="row g-4 mt-4">
+          <div class="col-md-6"><label class="form-label fw-bold">Carnet de vaccins</label><input type="file" class="form-control" name="vaccinScan" accept="application/pdf,image/*"></div>
+          <div class="col-md-6"><label class="form-label fw-bold">Ordonnances</label><input type="file" class="form-control" name="medicationScan" accept="application/pdf,image/*" multiple></div>
+        </div>
+
+        <div class="mt-4 p-4 bg-light rounded-3">
+          <h5>Autorisations légales (conformes eIDAS)</h5>
+          <p class="small">J'accorde aux Scouts et Guides de Cluses l'autorisation d'effectuer des prises de vue photographiques ou enregistrements audiovisuels sur lesquels mon enfant pourrait apparaître. J'autorise leur diffusion (interne, Internet, presse locale). Ces autorisations sont consenties à titre gracieux, pour un territoire illimité et sans limitation de durée, dans le respect du droit à l'image, de la vie privée et du RGPD.</p>
+          <p class="small">Je consens à ce que mon enfant effectue des trajets dans des véhicules conduits par un encadrant. Sans cette autorisation, seul le transport par véhicule de secours sera possible.</p>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="droitImage" name="droitImage" checked required><label>OK photos</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="autorisationTransport" name="autorisationTransport" checked required><label>OK transport</label></div>
+        </div>
+
+        <div class="signature-container mt-4">
+          <label class="form-label fw-bold">Signature parent (valable pour tout)</label>
+          <canvas id="signaturePad" class="signature-pad"></canvas>
+          <div class="mt-3 d-flex gap-3 justify-content-center">
+            <button type="button" class="btn btn-secondary-custom" id="clearSignature">Effacer</button>
+            <button type="button" class="btn btn-primary-custom" id="saveSignature">Signature OK</button>
+          </div>
+          <input type="hidden" id="signature" name="signatureDroitImage" required>
+          <input type="hidden" name="signatureSanitaire" id="signatureSanitaire">
+          <input type="hidden" name="luEtApprouveDroitImageText" value="Lu et approuvé">
+          <input type="hidden" name="luEtApprouveInscriptionText" value="Lu et approuvé">
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 -->
+      <div class="step-card" data-step="3">
+        <h2><span class="step-number">3</span> Finaliser</h2>
+        <div id="summary" class="alert alert-success-custom"><div id="summaryContent"></div></div>
+
+        <div class="row g-4 mt-4">
+          <div class="col-md-6"><div class="form-floating-custom"><input type="text" class="form-control" id="parentAdresse" name="parentAdresse" required><label>Adresse parent</label></div></div>
+          <div class="col-md-6"><div class="form-floating-custom"><input type="email" class="form-control" id="parentEmail" name="parentEmail" required><label>Email</label></div></div>
+        </div>
+
+        <div class="form-check mt-4 fs-5">
+          <input class="form-check-input" type="checkbox" id="acceptRGPD" required checked>
+          <label>J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a></label>
+        </div>
+
+        <div class="alert alert-info mt-4">
+          Cotisation : 20€/an<br>
+          Virement : FR76 1680 7000 3085 8868 0119 504<br>
+          Confirmez par SMS à Mathéo : 06.72.44.49.92
+        </div>
+      </div>
+
+      <div class="btn-group-navigation">
+        <button type="button" class="btn btn-secondary-custom" id="prevBtn" style="display: none;">Précédent</button>
+        <button type="button" class="btn btn-primary-custom" id="nextBtn">Suivant</button>
+        <button type="submit" class="btn btn-success btn-lg d-none" id="submitBtn">Inscription terminée !</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header bg-primary text-white"><h5>Aide immédiate</h5></div>
+      <div class="modal-body text-center p-4">
+        <p class="fs-4 fw-bold"><a href="tel:+33672444992">06 72 44 49 92</a></p>
+        <p>Mathéo répond en 1 minute</p>
+      </div>
+    </div></div>
+  </div>
+
+  <footer>
+    <p>Scouts et Guides de Cluses © 2025 • RGPD • eIDAS • CNIL</p>
+    <p><a href="/mentions-legales">Mentions légales</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    class InscriptionAssistant {
+      constructor() { this.currentStep = 1; this.totalSteps = 3; this.signaturePad = null; this.init(); }
+      init() {
+        this.steps = document.querySelectorAll('.step-card');
+        this.nextBtn = document.getElementById('nextBtn');
+        this.prevBtn = document.getElementById('prevBtn');
+        this.submitBtn = document.getElementById('submitBtn');
+        this.progressText = document.getElementById('progressText');
+        this.signaturePad = new SignaturePad(document.getElementById('signaturePad'));
+
+        this.nextBtn.addEventListener('click', () => this.nextStep());
+        this.prevBtn.addEventListener('click', () => this.prevStep());
+        document.getElementById('clearSignature').addEventListener('click', () => this.signaturePad.clear());
+        document.getElementById('saveSignature').addEventListener('click', () => {
+          if (!this.signaturePad.isEmpty()) {
+            document.getElementById('signature').value = this.signaturePad.toDataURL();
+            document.getElementById('signatureSanitaire').value = this.signaturePad.toDataURL();
+          }
+        });
+        document.getElementById('inscriptionForm').addEventListener('submit', (e) => this.handleSubmit(e));
+        this.updateProgress();
+      }
+      nextStep() { if (this.validateCurrentStep()) { this.currentStep++; this.updateProgress(); } }
+      prevStep() { this.currentStep--; this.updateProgress(); }
+      validateCurrentStep() {
+        let valid = true;
+        this.steps[this.currentStep - 1].querySelectorAll('[required]').forEach(f => {
+          if (!f.value.trim()) { f.classList.add('is-invalid'); valid = false; } else { f.classList.remove('is-invalid'); }
+        });
+        if (this.currentStep >= 2 && this.signaturePad.isEmpty()) { valid = false; }
+        return valid;
+      }
+      updateProgress() {
+        this.steps.forEach((s, i) => s.style.display = i + 1 === this.currentStep ? 'block' : 'none');
+        document.querySelectorAll('.progress-step').forEach((s, i) => {
+          s.classList.toggle('active', i + 1 === this.currentStep);
+          s.classList.toggle('completed', i + 1 < this.currentStep);
+        });
+        document.querySelectorAll('.progress-line').forEach((l, i) => l.classList.toggle('completed', i + 1 < this.currentStep));
+        this.progressText.textContent = `Étape ${this.currentStep} sur ${this.totalSteps}`;
+        this.prevBtn.style.display = this.currentStep > 1 ? 'inline-block' : 'none';
+        this.nextBtn.style.display = this.currentStep < this.totalSteps ? 'inline-block' : 'none';
+        if (this.currentStep === 3) { this.generateSummary(); this.nextBtn.style.display = 'none'; this.submitBtn.classList.remove('d-none'); }
+      }
+      generateSummary() {
+        const nom = document.getElementById('nom').value;
+        const prenom = document.getElementById('prenom').value;
+        const categorie = document.getElementById('categorie').selectedOptions[0].text;
+        document.getElementById('summaryContent').innerHTML = `<strong>${prenom} ${nom}</strong> • ${categorie}`;
+      }
+      async handleSubmit(e) {
+        e.preventDefault();
+        if (!this.validateCurrentStep()) return;
+        const formData = new FormData(e.target);
+        if (this.signaturePad.isEmpty()) return;
+        formData.set('signatureDroitImage', this.signaturePad.toDataURL());
+        formData.set('signatureSanitaire', this.signaturePad.toDataURL());
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true; btn.innerHTML = 'Envoi...';
+        const res = await fetch('/inscription', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          document.body.innerHTML = `<div class="container text-center mt-5"><h1>Inscription réussie !</h1><p>${data.message}</p><p><a href="${data.pdfUrl}" target="_blank">Autorisation</a> • <a href="${data.sanitaryPdfUrl}" target="_blank">Fiche santé</a></p></div>`;
+        } else {
+          alert(data.message);
+        }
+        btn.disabled = false; btn.innerHTML = 'Inscription terminée !';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => new InscriptionAssistant());
+  </script>
 </body>
 </html>
