@@ -171,7 +171,7 @@ app.post('/inscription',
         return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
       }
 
-      const categorie = body categorie;
+      const categorie = body.categorie;
       const birthDate = new Date(body.dateNaissance);
       const age = getAge(birthDate);
 
@@ -397,3 +397,4 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Serveur sur http://localhost:${PORT}`);
 });
+
