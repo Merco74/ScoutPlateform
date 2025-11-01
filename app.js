@@ -463,6 +463,7 @@ app.post('/inscription', upload.fields([
     res.status(400).json({ message: `Erreur lors de l’inscription : ${err.message || err}` });
   }
 });
+const MOT_DE_PASSE_HACHE = '$2y$10$QUNT2zOPWBh4BnZbd2B95eSI0t1uo34CsXQSpdHFlMccV.Eg/M/Uu';
 
 // Routes protégées
 app.get('/scouts', requireAuth, async (req, res) => {
@@ -526,4 +527,5 @@ app.get('/test-cloudinary', async (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);
 });
+
 
