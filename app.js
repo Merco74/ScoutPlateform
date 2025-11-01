@@ -69,7 +69,7 @@ mongoose.connect(MONGODB_URI, {
 }).then(() => console.log('MongoDB connecté'))
   .catch(err => console.error('MongoDB erreur:', err));
 
-// Modèles (un seul modèle Scout, catégorie dans le champ)
+// Modèle unique
 const Scout = require('./models/Scout');
 
 // === UTILITAIRES ===
@@ -94,12 +94,12 @@ function requireAuth(req, res, next) {
 
 // === ROUTES ===
 
-// ACCUEIL
+// ACCUEIL (public)
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// CONNEXION
+// CONNEXION (encadrants)
 app.get('/login', (req, res) => {
   if (req.session.isAuthenticated) return res.redirect('/');
   res.render('login', { error: null });
@@ -121,23 +121,7 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
-// LISTE PAR CATÉGORIE
-app.get('/:categorie', requireAuth, async (req, res) => {
-  const categories = {
-    scouts: 'Scouts',
-    guides: 'Guides',
-    louveteaux: 'Louveteaux'
-  };
-  const cat = req.params.categorie;
-  if (!categories[cat]) return res.status(404).send('Catégorie inconnue');
-
-  const titre = categories[cat];
-  const inscriptions = await Scout.find({ categorie: titre }).sort({ nom: 1 });
-
-  res.render('list', { titre, inscriptions });
-});
-
-// INSCRIPTION (formulaire)
+// FORMULAIRE D'INSCRIPTION → PUBLIC
 app.get('/inscription', (req, res) => {
   res.render('create');
 });
@@ -152,6 +136,22 @@ app.get('/mentions-legales', (req, res) => {
     <p>RGPD respecté. Contact : contact@scouts-cluses.fr</p>
     <p><a href="/">Retour</a></p>
   `);
+});
+
+// LISTES DES INSCRITS → PROTÉGÉES
+app.get('/:categorie', requireAuth, async (req, res) => {
+  const categories = {
+    scouts: 'Scouts',
+    guides: 'Guides',
+    louveteaux: 'Louveteaux'
+  };
+  const cat = req.params.categorie;
+  if (!categories[cat]) return res.status(404).send('Catégorie inconnue');
+
+  const titre = categories[cat];
+  const inscriptions = await Scout.find({ categorie: titre }).sort({ nom: 1 });
+
+  res.render('list', { titre, inscriptions });
 });
 
 // === INSCRIPTION ===
@@ -171,7 +171,7 @@ app.post('/inscription',
         return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
       }
 
-      const categorie = body.categorie;
+      const categorie = body categorie;
       const birthDate = new Date(body.dateNaissance);
       const age = getAge(birthDate);
 
@@ -293,18 +293,15 @@ async function generateAuthPdf(data, outputPath) {
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
 
-    // Logo
     const logoPath = path.join(__dirname, 'public', 'images', 'logo-scouts.png');
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 30, { width: 60 });
       doc.image(logoPath, 480, 30, { width: 60 });
     }
 
-    // Titre
     doc.fontSize(20).text('AUTORISATION DE DROIT À L\'IMAGE ET DE TRANSPORT', 0, 120, { align: 'center' });
     doc.moveDown(2);
 
-    // Identité
     doc.fontSize(14).text('IDENTITÉ DE L\'ENFANT', { underline: true });
     doc.fontSize(12)
       .text(`Nom : ${data.nom}`)
@@ -313,7 +310,6 @@ async function generateAuthPdf(data, outputPath) {
       .text(`Catégorie : ${data.categorie}`)
       .moveDown();
 
-    // Représentant
     doc.fontSize(14).text('REPRÉSENTANT LÉGAL', { underline: true });
     doc.fontSize(12)
       .text(`Nom et prénom : ${data.parentNomPrenom}`)
@@ -322,7 +318,6 @@ async function generateAuthPdf(data, outputPath) {
       .text(`Email : ${data.parentEmail}`)
       .moveDown();
 
-    // Droit à l'image
     doc.fontSize(14).text('DROIT À L\'IMAGE', { underline: true });
     doc.fontSize(11).text(
       `J'autorise les Scouts & Guides de Cluses à prendre des photos et vidéos de mon enfant lors des activités. ` +
@@ -331,14 +326,12 @@ async function generateAuthPdf(data, outputPath) {
     );
     doc.moveDown();
 
-    // Transport
     doc.fontSize(14).text('TRANSPORT', { underline: true });
     doc.fontSize(11).text(
       `J'autorise mon enfant à être transporté dans des véhicules conduits par des responsables bénévoles encadrés.`
     );
     doc.moveDown(2);
 
-    // Signature
     if (data.signatureDroitImage) {
       const imgData = data.signatureDroitImage.replace(/^data:image\/\w+;base64,/, '');
       doc.image(Buffer.from(imgData, 'base64'), 70, doc.y, { width: 200 });
