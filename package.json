@@ -10,6 +10,7 @@
     "node": "22.x"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "cloudinary": "^1.41.3",
     "connect-mongo": "^5.1.0",
     "ejs": "^3.1.10",
@@ -18,8 +19,7 @@
     "mongoose": "^8.7.0",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "pdfkit": "^0.15.0",
-    "dotenv": "^16.6.1"
+    "pdfkit": "^0.15.0"
   },
   "author": "",
   "license": "ISC"
