@@ -30,6 +30,7 @@ cloudinary.config({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // Debug middleware to log session state
@@ -463,7 +464,6 @@ app.post('/inscription', upload.fields([
     res.status(400).json({ message: `Erreur lors de l’inscription : ${err.message || err}` });
   }
 });
-const MOT_DE_PASSE_HACHE = '$2y$10$QUNT2zOPWBh4BnZbd2B95eSI0t1uo34CsXQSpdHFlMccV.Eg/M/Uu';
 
 // Routes protégées
 app.get('/scouts', requireAuth, async (req, res) => {
@@ -491,6 +491,7 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
+const MOT_DE_PASSE_HACHE = '$2y$10$QUNT2zOPWBh4BnZbd2B95eSI0t1uo34CsXQSpdHFlMccV.Eg/M/Uu';
 // === VÉRIFICATION MOT DE PASSE ===
 app.post('/login', async (req, res) => {
   const { mot_de_passe } = req.body;
@@ -527,5 +528,6 @@ app.get('/test-cloudinary', async (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);
 });
+
 
 
