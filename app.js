@@ -485,14 +485,28 @@ app.get('/guides', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/louveteaux', requireAuth, async (req, res) => {
-  try {
-    const louveteaux = await Louveteau.find();
-    res.render('list', { inscriptions: louveteaux, titre: 'Louveteaux' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des louveteaux:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des louveteaux.' });
+// === PAGE DE CONNEXION ===
+app.get('/login', (req, res) => {
+  res.render('login', { error: null });
+});
+
+// === VÉRIFICATION MOT DE PASSE ===
+app.post('/login', async (req, res) => {
+  const { mot_de_passe } = req.body;
+
+  if (!mot_de_passe) {
+    return res.render('login', { error: 'Entrez le mot de passe.' });
   }
+
+  const match = await bcrypt.compare(mot_de_passe, MOT_DE_PASSE_HACHE);
+
+  if (!match) {
+    return res.render('login', { error: 'Mot de passe incorrect.' });
+  }
+
+  // Connexion réussie
+  req.session.connecte = true;
+  res.redirect('/dashboard');
 });
 
 // Test route for Cloudinary
@@ -512,3 +526,4 @@ app.get('/test-cloudinary', async (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);
 });
+
