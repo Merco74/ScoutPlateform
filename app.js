@@ -192,28 +192,34 @@ app.get('/mentions-legales', (req, res) => {
 app.post('/inscription', upload.fields([
   { name: 'vaccinScan', maxCount: 1 },
   { name: 'medicationScan', maxCount: 1 },
-  { name: 'recommendationMedicalScan', maxCount: 1 },
   { name: 'otherDocuments', maxCount: 10 }
 ]), async (req, res) => {
   try {
+    // Vérifie que req.body existe
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: 'Aucune donnée reçue.' });
+    }
+
     const f = req.body;
     const files = req.files || {};
 
-    // Validation
+    // Validation des champs obligatoires
     if (!f.nom || !f.prenom || !f.categorie) {
-      return res.status(400).json({ message: 'Nom, prénom et catégorie requis.' });
+      return res.status(400).json({ message: 'Nom, prénom et catégorie sont requis.' });
     }
 
+    // Validation nom/prénom
     const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,}$/;
     if (!nameRegex.test(f.nom) || !nameRegex.test(f.prenom)) {
-      return res.status(400).json({ message: 'Nom/prénom invalide.' });
+      return res.status(400).json({ message: 'Nom ou prénom invalide.' });
     }
 
+    // Vérifie signatures
     if (!f.signatureDroitImage || !f.signatureSanitaire) {
-      return res.status(400).json({ message: 'Signatures requises.' });
+      return res.status(400).json({ message: 'Les deux signatures sont requises.' });
     }
 
-    // Upload Cloudinary
+    // --- Uploads Cloudinary ---
     const uploadFile = async (file, folder) => {
       if (!file) return '';
       return new Promise((resolve, reject) => {
@@ -224,11 +230,11 @@ app.post('/inscription', upload.fields([
       });
     };
 
-    const vaccinScan = files.vaccinScan ? await uploadFile(files.vaccinScan[0], 'uploads') : '';
-    const medicationScan = files.medicationScan ? await uploadFile(files.medicationScan[0], 'uploads') : '';
+    const vaccinScan = files.vaccinScan?.[0] ? await uploadFile(files.vaccinScan[0], 'uploads') : '';
+    const medicationScan = files.medicationScan?.[0] ? await uploadFile(files.medicationScan[0], 'uploads') : '';
     const otherDocs = files.otherDocuments ? await Promise.all(files.otherDocuments.map(f => uploadFile(f, 'uploads'))) : [];
 
-    // Générer PDFs
+    // --- Générer PDFs ---
     const authBuffer = await generatePdfBuffer(f, 'auth');
     const sanitaryBuffer = await generatePdfBuffer(f, 'sanitary');
 
@@ -246,22 +252,23 @@ app.post('/inscription', upload.fields([
       ).end(sanitaryBuffer);
     });
 
-    // Construire parentNomPrenom
+    // --- Construire parentNomPrenom ---
     const parentNomPrenom = `${f.responsable1Nom || ''} ${f.responsable1Prenom || ''}`.trim();
 
-    // Modèle
+    // --- Choisir le modèle ---
     let Model;
     if (f.categorie === 'scout') Model = Scout;
     else if (f.categorie === 'guide') Model = Guide;
     else if (f.categorie === 'louveteau') Model = Louveteau;
     else return res.status(400).json({ message: 'Catégorie invalide.' });
 
+    // --- Créer l'objet à sauvegarder ---
     const inscription = new Model({
       nom: f.nom,
       prenom: f.prenom,
-      dateNaissance: new Date(f.dateNaissance),
+      dateNaissance: f.dateNaissance ? new Date(f.dateNaissance) : null,
       sexe: f.sexe,
-      age: Number(f.age),
+      age: f.age ? Number(f.age) : null,
       adresse: f.adresse,
       ville: f.ville,
       codePostal: f.codePostal,
@@ -276,9 +283,9 @@ app.post('/inscription', upload.fields([
         lien: f.contactUrgenceLien
       },
       contactUrgenceSecondaire: f.contactUrgenceSecondaireNom ? {
-        nom: f.contactUrgenceSecondaireNom,
-        prenom: f.contactUrgenceSecondairePrenom,
-        telPortable: f.contactUrgenceSecondaireTel,
+        nom: f.contactUrgenceSecondaireNom || null,
+        prenom: f.contactUrgenceSecondairePrenom || null,
+        telPortable: f.contactUrgenceSecondaireTel || null,
         sexe: f.contactUrgenceSecondaireSexe || null,
         lien: f.contactUrgenceSecondaireLien || null
       } : null,
@@ -343,10 +350,11 @@ app.post('/inscription', upload.fields([
 
     res.json({
       success: true,
-      message: 'Inscription enregistrée !',
+      message: 'Inscription enregistrée avec succès !',
       pdfUrl: authPdfUrl,
       sanitaryPdfUrl: sanitaryPdfUrl
     });
+
   } catch (err) {
     console.error('Erreur inscription:', err);
     res.status(500).json({ message: 'Erreur serveur : ' + err.message });
@@ -391,6 +399,7 @@ app.get('/logout', (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur sur http://localhost:${port}`);
 });
+
 
 
 
