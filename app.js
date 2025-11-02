@@ -12,7 +12,6 @@ const fs = require('fs');
 const Scout = require('./models/Scout');
 const Guide = require('./models/Guide');
 const Louveteau = require('./models/Louveteau');
-const bcrypt = require('bcryptjs');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -392,5 +391,6 @@ app.get('/logout', (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur sur http://localhost:${port}`);
 });
+
 
 
