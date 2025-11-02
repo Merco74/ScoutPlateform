@@ -6,6 +6,7 @@
   <title>Inscription - Scouts & Guides de Cluses</title>
   <link rel="stylesheet" href="/css/styles.css"/>
   <style>
+    /* ... (ton style existant) ... */
     .container { max-width: 900px; margin: 2rem auto; padding: 1rem; font-family: Arial, sans-serif; }
     .section { margin: 2rem 0; padding: 1.5rem; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
     .section h2 { margin-top: 0; color: #1a5fb4; font-size: 1.4rem; }
@@ -13,16 +14,14 @@
     input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
     label { display: block; margin: 0.5rem 0; font-weight: bold; }
     .required { color: red; }
-    .checkbox-group { margin: 1rem 0; }
     .checkbox-group label { display: flex; align-items: center; font-weight: normal; }
     .checkbox-group input { width: auto; margin-right: 0.5rem; }
     .signature-pad { border: 2px dashed #aaa; border-radius: 8px; background: white; margin: 1rem 0; }
     button { background: #1a5fb4; color: white; padding: 1rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 1rem; }
     button:hover { background: #0d47a1; }
-    .success { color: green; font-weight: bold; padding: 1rem; background: #e8f5e9; border-radius: 8px; margin-top: 1rem; }
-    .error { color: red; padding: 1rem; background: #ffebee; border-radius: 8px; margin-top: 1rem; }
-    .file-input { margin: 0.5rem 0; }
-    .file-label { font-weight: normal; font-size: 0.9rem; color: #555; }
+    .success, .error { padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+    .success { background: #e8f5e9; color: green; }
+    .error { background: #ffebee; color: red; }
     .cotisation { background: #fff3e0; padding: 1rem; border-left: 4px solid #ff9800; font-weight: bold; }
   </style>
 </head>
@@ -31,100 +30,56 @@
     <h1 style="text-align: center; color: #1a5fb4;">Inscription Scouts & Guides de Cluses</h1>
 
     <form id="inscriptionForm" enctype="multipart/form-data">
-      <!-- === CATÉGORIE === -->
+      <!-- CATÉGORIE -->
       <div class="section">
         <h2>1. Catégorie <span class="required">*</span></h2>
         <select name="categorie" required>
-          <option value="">Choisir une branche...</option>
+          <option value="">Choisir...</option>
           <option value="scout">Scout</option>
           <option value="guide">Guide</option>
+          <option value="louveteau">Louveteau</option>
         </select>
       </div>
 
-      <!-- === IDENTITÉ DE L'ENFANT === -->
+      <!-- IDENTITÉ ENFANT -->
       <div class="section">
         <h2>2. Identité de l'enfant <span class="required">*</span></h2>
         <div class="form-grid">
-          <div>
-            <label>Nom <span class="required">*</span></label>
-            <input type="text" name="nom" required>
-          </div>
-          <div>
-            <label>Prénom <span class="required">*</span></label>
-            <input type="text" name="prenom" required>
-          </div>
-          <div>
-            <label>Date de naissance <span class="required">*</span></label>
-            <input type="date" name="dateNaissance" required>
-          </div>
-          <div>
-            <label>Sexe <span class="required">*</span></label>
+          <div><label>Nom <span class="required">*</span></label><input type="text" name="nom" required></div>
+          <div><label>Prénom <span class="required">*</span></label><input type="text" name="prenom" required></div>
+          <div><label>Date de naissance <span class="required">*</span></label><input type="date" name="dateNaissance" required></div>
+          <div><label>Âge <span class="required">*</span></label><input type="number" name="age" min="11" max="17" required></div>
+          <div><label>Sexe <span class="required">*</span></label>
             <select name="sexe" required>
               <option value="">Choisir...</option>
               <option value="Masculin">Garçon</option>
               <option value="Féminin">Fille</option>
             </select>
           </div>
-          <div>
-            <label>Ville <span class="required">*</span></label>
-            <input type="text" name="ville" required>
-          </div>
-          <div>
-            <label>Code postal <span class="required">*</span></label>
-            <input type="text" name="codePostal" pattern="\d{5}" required>
-          </div>
-          <div style="grid-column: span 2;">
-            <label>Adresse complète <span class="required">*</span></label>
-            <input type="text" name="adresse" required>
-          </div>
-          <div>
-            <label>Téléphone du jeune <span class="required">*</span></label>
-            <input type="tel" name="telPortable" pattern="0[6-7]\d{8}" placeholder="06..." required>
-          </div>
-          <div>
-            <label>Email du jeune (facultatif)</label>
-            <input type="email" name="email">
-          </div>
+          <div><label>Ville <span class="required">*</span></label><input type="text" name="ville" required></div>
+          <div><label>Code postal <span class="required">*</span></label><input type="text" name="codePostal" pattern="\d{5}" required></div>
+          <div style="grid-column: span 2;"><label>Adresse <span class="required">*</span></label><input type="text" name="adresse" required></div>
+          <div><label>Tél. portable <span class="required">*</span></label><input type="tel" name="telPortable" pattern="0[6-7]\d{8}" required></div>
+          <div><label>Email</label><input type="email" name="email"></div>
+          <div><label>Tél. domicile</label><input type="tel" name="telDomicile"></div>
         </div>
       </div>
 
-      <!-- === RESPONSABLES LÉGAUX === -->
+      <!-- RESPONSABLES -->
       <div class="section">
-        <h2>3. Responsables légaux <span class="required">*</span></h2>
-
-        <h3>Responsable 1 (parent ou tuteur légal)</h3>
+        <h2>3. Responsables légaux</h2>
+        <h3>Responsable 1 <span class="required">*</span></h3>
         <div class="form-grid">
-          <div>
-            <label>Nom <span class="required">*</span></label>
-            <input type="text" name="responsable1Nom" required>
-          </div>
-          <div>
-            <label>Prénom <span class="required">*</span></label>
-            <input type="text" name="responsable1Prenom" required>
-          </div>
-          <div style="grid-column: span 2;">
-            <label>Adresse complète <span class="required">*</span></label>
-            <input type="text" name="responsable1Adresse" required>
-          </div>
-          <div>
-            <label>Téléphone portable <span class="required">*</span></label>
-            <input type="tel" name="responsable1TelPortable" pattern="0[6-7]\d{8}" required>
-          </div>
-          <div>
-            <label>Téléphone domicile</label>
-            <input type="tel" name="responsable1TelDomicile">
-          </div>
-          <div>
-            <label>Téléphone travail</label>
-            <input type="tel" name="responsable1TelTravail">
-          </div>
-          <div>
-            <label>Email parental <span class="required">*</span></label>
-            <input type="email" name="parentEmail" required>
-          </div>
+          <div><label>Nom</label><input type="text" name="responsable1Nom" required></div>
+          <div><label>Prénom</label><input type="text" name="responsable1Prenom" required></div>
+          <div style="grid-column: span 2;"><label>Adresse</label><input type="text" name="responsable1Adresse" required></div>
+          <div><label>Portable</label><input type="tel" name="responsable1TelPortable" pattern="0[6-7]\d{8}" required></div>
+          <div><label>Domicile</label><input type="tel" name="responsable1TelDomicile"></div>
+          <div><label>Travail</label><input type="tel" name="responsable1TelTravail"></div>
+          <div><label>Email parental</label><input type="email" name="parentEmail" required></div>
         </div>
 
-        <h3>Responsable 2 (facultatif)</h3>
+        <h3>Responsable 2</h3>
         <div class="form-grid">
           <div><label>Nom</label><input type="text" name="responsable2Nom"></div>
           <div><label>Prénom</label><input type="text" name="responsable2Prenom"></div>
@@ -135,25 +90,23 @@
         </div>
       </div>
 
-      <!-- === CONTACT D'URGENCE === -->
+      <!-- CONTACT URGENCE -->
       <div class="section">
-        <h2>4. Contact d'urgence (autre que parents) <span class="required">*</span></h2>
+        <h2>4. Contact d'urgence <span class="required">*</span></h2>
         <div class="form-grid">
-          <div><label>Nom <span class="required">*</span></label><input type="text" name="contactUrgenceNom" required></div>
-          <div><label>Prénom <span class="required">*</span></label><input type="text" name="contactUrgencePrenom" required></div>
-          <div><label>Téléphone <span class="required">*</span></label><input type="tel" name="contactUrgenceTel" required></div>
-          <div>
-            <label>Sexe <span class="required">*</span></label>
+          <div><label>Nom</label><input type="text" name="contactUrgenceNom" required></div>
+          <div><label>Prénom</label><input type="text" name="contactUrgencePrenom" required></div>
+          <div><label>Tél.</label><input type="tel" name="contactUrgenceTel" required></div>
+          <div><label>Sexe</label>
             <select name="contactUrgenceSexe" required>
-              <option value="">Choisir...</option>
+              <option value="">...</option>
               <option value="Homme">Homme</option>
               <option value="Femme">Femme</option>
             </select>
           </div>
-          <div style="grid-column: span 2;">
-            <label>Lien <span class="required">*</span></label>
+          <div style="grid-column: span 2;"><label>Lien</label>
             <select name="contactUrgenceLien" required>
-              <option value="">Choisir...</option>
+              <option value="">...</option>
               <option value="Famille">Famille</option>
               <option value="Tuteur légal">Tuteur légal</option>
             </select>
@@ -161,19 +114,17 @@
         </div>
       </div>
 
-      <!-- === AUTRE CLUB === -->
+      <!-- AUTRE CLUB -->
       <div class="section">
-        <h2>5. Autre club sportif ?</h2>
-        <label><input type="checkbox" name="autreClub"> Oui, mon enfant est inscrit dans un autre club</label>
-        <input type="text" name="nomAutreClub" placeholder="Nom du club (si oui)">
+        <h2>5. Autre club ?</h2>
+        <label><input type="checkbox" name="autreClub"> Oui</label>
+        <input type="text" name="nomAutreClub" placeholder="Nom du club">
       </div>
 
-      <!-- === FICHE SANITAIRE === -->
+      <!-- SANITAIRE -->
       <div class="section">
         <h2>6. Fiche sanitaire</h2>
-        <div class="checkbox-group">
-          <label><input type="checkbox" name="vaccinsObligatoires" checked disabled> Vaccins obligatoires à jour</label>
-        </div>
+        <label><input type="checkbox" name="vaccinsObligatoires" checked> Vaccins obligatoires à jour</label>
 
         <h3>Vaccins recommandés</h3>
         <div class="form-grid">
@@ -186,84 +137,60 @@
           <div><input type="text" name="vaccinPneumocoque" value="OK" readonly></div>
           <div><input type="text" name="vaccinBcg" value="OK" readonly></div>
         </div>
-        <label>Autres vaccins :</label>
-        <input type="text" name="vaccinsAutres">
+        <label>Autres :</label><input type="text" name="vaccinsAutres">
 
         <div class="checkbox-group">
-          <label><input type="checkbox" name="traitementMedical"> En traitement médical</label>
+          <label><input type="checkbox" name="traitementMedical"> Traitement</label>
           <label><input type="checkbox" name="allergiesAlimentaires"> Allergies alimentaires</label>
           <label><input type="checkbox" name="allergiesMedicament"> Allergies médicaments</label>
-          <label><input type="checkbox" name="allergiesAutres"> Autres allergies</label>
+          <label><input type="checkbox" name="allergiesAutres"> Autres</label>
         </div>
-        <textarea name="allergiesDetails" rows="2" placeholder="Précisez..."></textarea>
+        <textarea name="allergiesDetails" placeholder="Détails..."></textarea>
 
         <label><input type="checkbox" name="problemeSante"> Problème de santé</label>
-        <textarea name="problemeSanteDetails" rows="2" placeholder="Détails..."></textarea>
+        <textarea name="problemeSanteDetails" placeholder="Détails..."></textarea>
 
-        <label>Médecin traitant :</label>
-        <input type="text" name="medecinTraitant">
+        <label>Médecin traitant :</label><input type="text" name="medecinTraitant">
       </div>
 
-      <!-- === DOCUMENTS === -->
+      <!-- DOCUMENTS -->
       <div class="section">
         <h2>7. Documents</h2>
-        <div class="file-input">
-          <label class="file-label"><strong>Carnet de vaccination <span class="required">*</span></strong></label>
-          <input type="file" name="vaccinScan" accept=".pdf,.jpg,.jpeg,.png" required>
-        </div>
-        <div class="file-input">
-          <label class="file-label">Ordonnances</label>
-          <input type="file" name="medicationScan" accept=".pdf,.jpg,.jpeg,.png" multiple>
-        </div>
-        <div class="file-input">
-          <label class="file-label">Autres</label>
-          <input type="file" name="otherDocuments" accept=".pdf,.jpg,.jpeg,.png" multiple>
-        </div>
+        <label>Carnet vaccination <span class="required">*</span></label>
+        <input type="file" name="vaccinScan" accept=".pdf,.jpg,.jpeg,.png" required>
+        <label>Ordonnances</label><input type="file" name="medicationScan" accept=".pdf,.jpg,.jpeg,.png">
+        <label>Autres</label><input type="file" name="otherDocuments" accept=".pdf,.jpg,.jpeg,.png" multiple>
       </div>
 
-      <!-- === AUTORISATIONS === -->
+      <!-- AUTORISATIONS -->
       <div class="section">
         <h2>8. Autorisations <span class="required">*</span></h2>
         <div class="checkbox-group">
-          <label>
-            <input type="checkbox" name="droitImage" required>
-            J'autorise la prise de photos/vidéos de mon enfant
-          </label>
-          <label>
-            <input type="checkbox" name="droitDiffusion" required>
-            J'autorise leur diffusion (site, réseaux, presse)
-          </label>
-          <label>
-            <input type="checkbox" name="autorisationTransport" required>
-            J'autorise le transport en véhicule personnel
-          </label>
+          <label><input type="checkbox" name="droitImage" required> Photos/vidéos</label>
+          <label><input type="checkbox" name="droitDiffusion" required> Diffusion publique</label>
+          <label><input type="checkbox" name="autorisationTransport" required> Transport véhicule</label>
         </div>
-        <p style="font-size: 0.9rem; color: #555;">
-          Lu et approuvé — RGPD respecté.
-        </p>
       </div>
 
-      <!-- === COTISATION === -->
+      <!-- COTISATION -->
       <div class="section cotisation">
-        <strong>Cotisation annuelle : 20 €</strong><br>
-        À régler en espèces ou par chèque lors d'une sortie ou virement bancaire à FR76 1680 7000 3085 8868 0119 504. Prévenir Mattéo (06 72 44 49 92) en cas de virement bancaire. Mettre le prénom et nom de votre enfant sur la lettre contenant le chèque.
+        <strong>Cotisation : 20 €</strong> (espèces, chèque, virement)
       </div>
 
-      <!-- === SIGNATURES === -->
+      <!-- SIGNATURES -->
       <div class="section">
         <h2>9. Signature <span class="required">*</span></h2>
-        <label><strong>Autorisation & inscription</strong></label>
-        <canvas id="signatureDroitImage" class="signature-pad" width="500" height="150"></canvas>
-        <button type="button" onclick="clearSignature('signatureDroitImage')" style="width: auto;">Effacer</button>
-        <input type="hidden" name="signatureDroitImage" id="signatureDroitImageData">
+        <label>Autorisation & inscription</label>
+        <canvas id="sig1" class="signature-pad" width="500" height="150"></canvas>
+        <button type="button" onclick="clearSig('sig1')">Effacer</button>
+        <input type="hidden" name="signatureDroitImage" id="sig1Data">
 
-        <label style="margin-top: 1rem;"><strong>Fiche sanitaire</strong></label>
-        <canvas id="signatureSanitaire" class="signature-pad" width="500" height="150"></canvas>
-        <button type="button" onclick="clearSignature('signatureSanitaire')" style="width: auto;">Effacer</button>
-        <input type="hidden" name="signatureSanitaire" id="signatureSanitaireData">
+        <label style="margin-top: 1rem;">Fiche sanitaire</label>
+        <canvas id="sig2" class="signature-pad" width="500" height="150"></canvas>
+        <button type="button" onclick="clearSig('sig2')">Effacer</button>
+        <input type="hidden" name="signatureSanitaire" id="sig2Data">
       </div>
 
-      <!-- === ENVOI === -->
       <button type="submit">Valider l'inscription</button>
     </form>
 
@@ -272,39 +199,35 @@
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   <script>
-    const sig1 = new SignaturePad(document.getElementById('signatureDroitImage'));
-    const sig2 = new SignaturePad(document.getElementById('signatureSanitaire'));
+    const pad1 = new SignaturePad(document.getElementById('sig1'));
+    const pad2 = new SignaturePad(document.getElementById('sig2'));
 
-    function clearSignature(id) {
-      if (id === 'signatureDroitImage') sig1.clear();
-      if (id === 'signatureSanitaire') sig2.clear();
+    function clearSig(id) {
+      if (id === 'sig1') pad1.clear();
+      if (id === 'sig2') pad2.clear();
     }
 
-    document.getElementById('inscriptionForm').addEventListener('submit', async (e) => {
+    document.getElementById('inscriptionForm').addEventListener('submit', async e => {
       e.preventDefault();
-      if (sig1.isEmpty() || sig2.isEmpty()) {
-        alert('Veuillez signer les deux documents');
-        return;
-      }
+      if (pad1.isEmpty() || pad2.isEmpty()) return alert('Veuillez signer les deux documents');
 
-      const formData = new FormData(e.target);
-      formData.set('signatureDroitImage', sig1.toDataURL());
-      formData.set('signatureSanitaire', sig2.toDataURL());
-      formData.append('luEtApprouveDroitImageText', 'Lu et approuvé');
-      formData.append('luEtApprouveInscriptionText', 'Lu et approuvé');
-      formData.append('lieuInscription', 'Cluses');
+      const fd = new FormData(e.target);
+      fd.set('signatureDroitImage', pad1.toDataURL());
+      fd.set('signatureSanitaire', pad2.toDataURL());
+      fd.append('luEtApprouveDroitImageText', 'Lu et approuvé');
+      fd.append('luEtApprouveInscriptionText', 'Lu et approuvé');
+      fd.append('lieuInscription', 'Cluses');
 
-      const res = await fetch('/inscription', { method: 'POST', body: formData });
+      const res = await fetch('/inscription', { method: 'POST', body: fd });
       const json = await res.json();
       const result = document.getElementById('result');
 
       if (json.success) {
-        result.innerHTML = `
-          <div class="success">
-            Inscription enregistrée ! Cotisation : 20 € à régler.<br>
-            <a href="${json.pdfUrl}" target="_blank">Autorisation</a> | 
-            <a href="${json.sanitaryPdfUrl}" target="_blank">Fiche sanitaire</a>
-          </div>`;
+        result.innerHTML = `<div class="success">
+          Inscription enregistrée !<br>
+          <a href="${json.pdfUrl}" target="_blank">Autorisation</a> |
+          <a href="${json.sanitaryPdfUrl}" target="_blank">Fiche sanitaire</a>
+        </div>`;
       } else {
         result.innerHTML = `<div class="error">${json.message}</div>`;
       }
