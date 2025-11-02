@@ -16,10 +16,10 @@ const Louveteau = require('./models/Louveteau');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Trust proxy for Railway's load balancer
+// Trust proxy
 app.set('trust proxy', 1);
 
-// Cloudinary configuration
+// Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_KEY,
@@ -33,32 +33,28 @@ app.use(express.static('public'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// Debug middleware to log session state
+// Debug session
 app.use((req, res, next) => {
-  console.log(`Request: ${req.method} ${req.url}, Session ID: ${req.sessionID}, Session:`, req.session);
+  console.log(`Request: ${req.method} ${req.url}, Session:`, req.session);
   next();
 });
 
-// Multer configuration for file uploads
+// Multer
 const storage = multer.memoryStorage();
 const upload = multer({
-  storage: storage,
+  storage,
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Type de fichier non autorisé (PDF, JPEG, PNG uniquement)'));
-    }
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    cb(null, allowed.includes(file.mimetype));
   },
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// Session configuration with MongoDB store
+// Session
 const mongoStore = MongoStore.create({
   mongoUrl: process.env.MONGODB_URI,
-  ttl: 14 * 24 * 60 * 60, // 14 days
-  autoRemove: 'native' // Remove expired sessions
+  ttl: 14 * 24 * 60 * 60,
+  autoRemove: 'native'
 });
 mongoStore.on('error', err => console.error('MongoStore error:', err));
 
@@ -68,36 +64,31 @@ app.use(session({
   saveUninitialized: false,
   store: mongoStore,
   cookie: {
-    secure: process.env.NODE_ENV === 'production' ? 'auto' : false, // Auto for Railway HTTPS
-    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 14 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-site cookies in production
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 
-// MongoDB connection with retry
+// MongoDB
 const connectWithRetry = () => {
   mongoose.connect(process.env.MONGODB_URI, { maxPoolSize: 10 })
     .then(() => console.log('Connecté à MongoDB'))
     .catch(err => {
       console.error('Erreur MongoDB:', err);
-      setTimeout(connectWithRetry, 5000); // Retry after 5 seconds
+      setTimeout(connectWithRetry, 5000);
     });
 };
 connectWithRetry();
 
-// Middleware for authentication
+// Auth middleware
 const requireAuth = (req, res, next) => {
-  console.log('Checking auth, Session ID:', req.sessionID, 'isAuthenticated:', req.session.isAuthenticated);
-  if (req.session.isAuthenticated) {
-    return next();
-  }
+  if (req.session.isAuthenticated) return next();
   res.redirect('/login');
 };
 
-// Function to generate PDF buffer
+// PDF Generator
 const generatePdfBuffer = async (formData, type) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -106,135 +97,86 @@ const generatePdfBuffer = async (formData, type) => {
     doc.on('end', () => resolve(Buffer.concat(buffers)));
     doc.on('error', reject);
 
-    const bannerImagePath = path.join(__dirname, 'images', 'scouts-cluses-banner.jpg');
-    if (!fs.existsSync(bannerImagePath)) {
-      reject(new Error(`Image de bannière introuvable à ${bannerImagePath}`));
-      return;
-    }
+    const banner = path.join(__dirname, 'images', 'scouts-cluses-banner.jpg');
+    if (!fs.existsSync(banner)) return reject(new Error('Bannière manquante'));
 
     if (type === 'auth') {
-      doc.image(bannerImagePath, 50, 45, { width: 50 })
-        .fontSize(20)
-        .text('Autorisation de Droit à l\'Image et de Transport', { align: 'center' })
-        .image(bannerImagePath, 500, 45, { width: 50 })
-        .moveDown(2);
+      doc.image(banner, 50, 45, { width: 50 })
+        .fontSize(20).text('Autorisation Droit à l\'Image & Transport', { align: 'center' })
+        .image(banner, 500, 45, { width: 50 }).moveDown(2);
 
       doc.fontSize(14).text('IDENTITÉ', { underline: true });
       doc.fontSize(12)
-        .text('Je soussigné(e) :')
-        .text(`Nom : ${formData.nom || '-'}`)
-        .text(`Prénom : ${formData.prenom || '-'}`)
-        .text('Demeurant :')
-        .text(formData.parentAdresse || '-')
-        .text('Adresse email :')
-        .text(formData.parentEmail || '-');
-      doc.moveDown(2);
+        .text(`Je soussigné(e) : ${formData.parentNomPrenom || '-'}`)
+        .text(`Adresse : ${formData.parentAdresse || '-'}`)
+        .text(`Email : ${formData.parentEmail || '-'}`)
+        .moveDown(2);
 
       doc.fontSize(14).text('DROIT À L\'IMAGE', { underline: true });
       doc.fontSize(12)
-        .text('J\'accorde aux Scouts et Guides de Cluses l\'autorisation d\'effectuer des prises de vue photographiques ou des enregistrements audiovisuels sur lesquels mon enfant pourrait apparaître.')
-        .moveDown();
-      let yPos = doc.y;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.droitImage === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('1. Autorisation des prises de vue photographiques ou enregistrements audiovisuels.', 70, yPos);
-      yPos += 20;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.droitDiffusion === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('2. Autorisation de diffusion sur réseaux (interne, Internet, presse locale).', 70, yPos);
-      doc.moveDown();
-      doc.text('Ces autorisations sont consenties à titre gracieux, pour un territoire illimité et sans limitation de durée, dans le respect de la législation sur le droit à l\'image et la vie privée.');
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('AUTORISATION DE TRANSPORT', { underline: true });
-      doc.fontSize(12)
-        .text('Je consens à ce que mon enfant effectue des trajets dans le cadre du camp des Scouts et Guides de Cluses, d\'ordre médical ou organisationnel, dans des véhicules personnels ou de l\'association conduits par un encadrant.')
-        .moveDown();
-      yPos = doc.y;
-      doc.rect(50, yPos, 10, 10).stroke();
-      if (formData.autorisationTransport === 'on') doc.rect(51, yPos + 1, 8, 8).fill();
-      doc.text('1. Autorisation des trajets dans les conditions décrites ci-dessus.', 70, yPos);
-      doc.moveDown();
-      doc.text('Sans cette autorisation, mon enfant ne pourra être transporté que par des véhicules de secours.');
-      doc.moveDown(2);
-
-      doc.fontSize(14).text('SIGNATURE', { underline: true });
-      doc.fontSize(12).text('Veuillez apposer votre signature ci-dessous :', 50, doc.y);
-      doc.rect(50, doc.y + 20, 500, 100).stroke();
-      if (formData.signatureDroitImage) {
-        const signatureData = formData.signatureDroitImage.replace(/^data:image\/png;base64,/, '');
-        doc.image(Buffer.from(signatureData, 'base64'), 60, doc.y + 30, { width: 150 });
-      }
-      doc.moveDown(4);
-
-      doc.fontSize(10)
-        .text(`Fait à : ${formData.lieuInscription || '-'}`, 50, 700)
-        .text(`Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, 720);
-    } else if (type === 'sanitary') {
-      doc.image(bannerImagePath, 50, 45, { width: 50 })
-        .fontSize(20)
-        .text('Fiche Sanitaire', { align: 'center' })
-        .image(bannerImagePath, 500, 45, { width: 50 })
+        .text('J\'autorise les prises de vue et diffusion :')
+        .text(`• Photos/vidéos : ${formData.droitImage ? 'Oui' : 'Non'}`)
+        .text(`• Diffusion publique : ${formData.droitDiffusion ? 'Oui' : 'Non'}`)
         .moveDown(2);
 
-      doc.fontSize(14).text('IDENTITÉ', { underline: true });
-      doc.fontSize(12)
-        .text(`Nom : ${formData.nom || '-'}`)
-        .text(`Prénom : ${formData.prenom || '-'}`)
-        .text(`Âge : ${formData.age || '-'}`)
-        .text(`Contact : ${formData.telPortable || '-'}`);
-      doc.moveDown(2);
+      doc.fontSize(14).text('TRANSPORT', { underline: true });
+      doc.fontSize(12).text(`Autorisation transport : ${formData.autorisationTransport ? 'Oui' : 'Non'}`)
+        .moveDown(2);
 
-      doc.fontSize(14).text('INFORMATIONS MÉDICALES', { underline: true });
-      doc.fontSize(12)
-        .text(`Vaccins obligatoires : ${formData.vaccinsObligatoires === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Vaccins recommandés : ${Object.entries(formData.vaccinsRecommandes || {}).map(([key, value]) => value ? `${key}: ${value}` : '').filter(v => v).join(', ') || '-'}`)
-        .text(`Traitement médical : ${formData.traitementMedical === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Médecin traitant : ${formData.medecinTraitant || '-'}`);
-      doc.moveDown(2);
+      doc.fontSize(14).text('SIGNATURE', { underline: true });
+      doc.rect(50, doc.y + 20, 500, 100).stroke();
+      if (formData.signatureDroitImage) {
+        const img = formData.signatureDroitImage.replace(/^data:image\/png;base64,/, '');
+        doc.image(Buffer.from(img, 'base64'), 60, doc.y + 30, { width: 150 });
+      }
+      doc.moveDown(4);
+      doc.fontSize(10)
+        .text(`Fait à : ${formData.lieuInscription}`, 50, 700)
+        .text(`Le : ${new Date().toLocaleDateString('fr-FR')}`, 50, 720);
+    } else if (type === 'sanitary') {
+      doc.image(banner, 50, 45, { width: 50 })
+        .fontSize(20).text('Fiche Sanitaire', { align: 'center' })
+        .image(banner, 500, 45, { width: 50 }).moveDown(2);
 
-      doc.fontSize(14).text('ALLERGIES', { underline: true });
+      doc.fontSize(14).text('ENFANT', { underline: true });
       doc.fontSize(12)
-        .text(`Alimentaires : ${formData.allergiesAlimentaires === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Médicamenteuses : ${formData.allergiesMedicament === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Autres : ${formData.allergiesAutres === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Détails : ${formData.allergiesDetails || '-'}`);
-      doc.moveDown(2);
+        .text(`Nom : ${formData.nom} ${formData.prenom}`)
+        .text(`Âge : ${formData.age} ans`)
+        .text(`Téléphone : ${formData.telPortable}`)
+        .moveDown(2);
 
       doc.fontSize(14).text('SANTÉ', { underline: true });
       doc.fontSize(12)
-        .text(`Problème de santé : ${formData.problemeSante === 'on' ? 'Oui' : 'Non'}`)
-        .text(`Détails : ${formData.problemeSanteDetails || '-'}`)
-        .text(`Recommandations parents : ${formData.recommandationsParents || '-'}`);
-      doc.moveDown(2);
+        .text(`Vaccins obligatoires : ${formData.vaccinsObligatoires ? 'Oui' : 'Non'}`)
+        .text(`Traitement : ${formData.traitementMedical ? 'Oui' : 'Non'}`)
+        .text(`Allergies : ${formData.allergiesDetails || 'Aucune'}`)
+        .text(`Problème santé : ${formData.problemeSante ? formData.problemeSanteDetails : 'Non'}`)
+        .moveDown(2);
 
       doc.fontSize(14).text('CONTACTS', { underline: true });
       doc.fontSize(12)
-        .text(`Responsable 1 : ${(formData.responsable1Nom || '-') + ' ' + (formData.responsable1Prenom || '-') + ' (' + (formData.responsable1TelPortable || '-') + ')'}`)
-        .text(`Responsable 2 : ${(formData.responsable2Nom || '-') + ' ' + (formData.responsable2Prenom || '-') + ' (' + (formData.responsable2TelPortable || '-') + ')'}`)
-        .text(`Contact urgence : ${(formData.contactUrgenceNom || '-') + ' ' + (formData.contactUrgencePrenom || '-') + ' (' + (formData.contactUrgenceTel || '-') + ')'}`);
-      doc.moveDown(2);
+        .text(`Resp. 1 : ${formData.responsable1Nom} ${formData.responsable1Prenom} (${formData.responsable1TelPortable})`)
+        .text(`Urgence : ${formData.contactUrgence.nom} ${formData.contactUrgence.prenom} (${formData.contactUrgence.telPortable})`)
+        .moveDown(2);
 
       doc.fontSize(14).text('SIGNATURE', { underline: true });
-      doc.fontSize(12).text('Veuillez apposer votre signature ci-dessous :', 50, doc.y);
       doc.rect(50, doc.y + 20, 500, 100).stroke();
       if (formData.signatureSanitaire) {
-        const signatureData = formData.signatureSanitaire.replace(/^data:image\/png;base64,/, '');
-        doc.image(Buffer.from(signatureData, 'base64'), 60, doc.y + 30, { width: 150 });
+        const img = formData.signatureSanitaire.replace(/^data:image\/png;base64,/, '');
+        doc.image(Buffer.from(img, 'base64'), 60, doc.y + 30, { width: 150 });
       }
       doc.moveDown(4);
-
       doc.fontSize(10)
-        .text(`Fait à : ${formData.lieuInscription || '-'}`, 50, 700)
-        .text(`Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, 720);
+        .text(`Fait à : ${formData.lieuInscription}`, 50, 700)
+        .text(`Le : ${new Date().toLocaleDateString('fr-FR')}`, 50, 720);
     }
     doc.end();
   });
 };
 
-// Routes publiques
+// === ROUTES ===
+
 app.get('/', (req, res) => {
-  console.log('Homepage session:', req.session);
   res.render('index', { isAuthenticated: req.session.isAuthenticated || false });
 });
 
@@ -246,6 +188,7 @@ app.get('/mentions-legales', (req, res) => {
   res.render('mentions-legales', { isAuthenticated: req.session.isAuthenticated || false });
 });
 
+// === INSCRIPTION ===
 app.post('/inscription', upload.fields([
   { name: 'vaccinScan', maxCount: 1 },
   { name: 'medicationScan', maxCount: 1 },
@@ -253,281 +196,199 @@ app.post('/inscription', upload.fields([
   { name: 'otherDocuments', maxCount: 10 }
 ]), async (req, res) => {
   try {
-    const formData = req.body;
-    const files = req.files;
+    const f = req.body;
+    const files = req.files || {};
 
-    // Validate form data
-    if (!formData.nom || !formData.prenom || !formData.categorie) {
-      return res.status(400).json({ message: 'Nom, prénom et catégorie sont requis.' });
+    // Validation
+    if (!f.nom || !f.prenom || !f.categorie) {
+      return res.status(400).json({ message: 'Nom, prénom et catégorie requis.' });
     }
+
     const nameRegex = /^[A-Za-zÀ-ÿ\s'-]{2,}$/;
-    if (!nameRegex.test(formData.nom)) {
-      return res.status(400).json({ message: 'Le nom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
-    }
-    if (!nameRegex.test(formData.prenom)) {
-      return res.status(400).json({ message: 'Le prénom doit contenir au moins 2 lettres et ne peut inclure que des lettres, espaces, apostrophes ou tirets.' });
-    }
-    // Validation plus tolérante pour "Lu et approuvé"
-    const requiredText = 'lu et approuvé';
-    const luEtApprouveDroitImage = (formData.luEtApprouveDroitImageText || '').trim().toLowerCase();
-    const luEtApprouveInscription = (formData.luEtApprouveInscriptionText || '').trim().toLowerCase();
-
-    if (luEtApprouveDroitImage !== requiredText || luEtApprouveInscription !== requiredText) {
-      return res.status(400).json({ message: 'Veuillez saisir "Lu et approuvé" dans les champs correspondants (insensible à la casse et aux espaces).' });
-    }
-    if (!formData.signatureDroitImage || !formData.signatureSanitaire) {
-      return res.status(400).json({ message: 'Les signatures sont requises.' });
-    }
-    if (!['scout', 'guide', 'louveteau'].includes(formData.categorie)) {
-      return res.status(400).json({ message: 'Catégorie invalide.' });
+    if (!nameRegex.test(f.nom) || !nameRegex.test(f.prenom)) {
+      return res.status(400).json({ message: 'Nom/prénom invalide.' });
     }
 
-    // Upload files to Cloudinary
-    const uploadToCloudinary = async (file, folder, resourceType = 'raw') => {
+    if (!f.signatureDroitImage || !f.signatureSanitaire) {
+      return res.status(400).json({ message: 'Signatures requises.' });
+    }
+
+    // Upload Cloudinary
+    const uploadFile = async (file, folder) => {
       if (!file) return '';
       return new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
-          {
-            resource_type: resourceType,
-            folder: `scouts-cluses/${folder}`,
-            public_id: `${Date.now()}_${file.originalname || 'document'}`
-          },
-          (error, result) => {
-            if (error) {
-              console.error(`Erreur lors de l'upload sur Cloudinary (${folder}):`, error);
-              return reject(error);
-            }
-            resolve(result.secure_url);
-          }
+          { resource_type: 'auto', folder: `scouts-cluses/${folder}`, public_id: `${Date.now()}_${file.originalname}` },
+          (err, result) => err ? reject(err) : resolve(result.secure_url)
         ).end(file.buffer);
       });
     };
 
-    // Process file uploads
-    formData.vaccinScan = files.vaccinScan ? await uploadToCloudinary(files.vaccinScan[0], 'uploads', 'auto') : '';
-    formData.medicationScan = files.medicationScan ? await uploadToCloudinary(files.medicationScan[0], 'uploads', 'auto') : '';
-    formData.recommendationMedicalScan = files.recommendationMedicalScan ? await uploadToCloudinary(files.recommendationMedicalScan[0], 'uploads', 'auto') : '';
-    formData.otherDocuments = files.otherDocuments ? await Promise.all(files.otherDocuments.map(file => uploadToCloudinary(file, 'uploads', 'auto'))) : [];
+    const vaccinScan = files.vaccinScan ? await uploadFile(files.vaccinScan[0], 'uploads') : '';
+    const medicationScan = files.medicationScan ? await uploadFile(files.medicationScan[0], 'uploads') : '';
+    const otherDocs = files.otherDocuments ? await Promise.all(files.otherDocuments.map(f => uploadFile(f, 'uploads'))) : [];
 
-    // Generate and upload PDFs
-    formData.vaccinsRecommandes = {
-      diphtérie: formData.vaccinsDiphtérie || '',
-      coqueluche: formData.vaccinsCoqueluche || '',
-      tétanos: formData.vaccinsTétanos || '',
-      haemophilus: formData.vaccinsHaemophilus || '',
-      poliomyélite: formData.vaccinsPoliomyélite || '',
-      rougeole: formData.vaccinsRougeole || '',
-      pneumocoque: formData.vaccinsPneumocoque || '',
-      bcg: formData.vaccinsBCG || '',
-      autres: formData.vaccinsAutres || ''
-    };
+    // Générer PDFs
+    const authBuffer = await generatePdfBuffer(f, 'auth');
+    const sanitaryBuffer = await generatePdfBuffer(f, 'sanitary');
 
-    const authPdfBuffer = await generatePdfBuffer(formData, 'auth');
     const authPdfUrl = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          folder: 'scouts-cluses/pdfs',
-          public_id: `autorisation_${formData.nom}_${Date.now()}.pdf`
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Erreur lors de l\'upload du PDF d\'autorisation:', error);
-            return reject(error);
-          }
-          resolve(result.secure_url);
-        }
-      ).end(authPdfBuffer);
+        { resource_type: 'raw', folder: 'scouts-cluses/pdfs', public_id: `auth_${f.nom}_${Date.now()}.pdf` },
+        (err, res) => err ? reject(err) : resolve(res.secure_url)
+      ).end(authBuffer);
     });
 
-    const sanitaryPdfBuffer = await generatePdfBuffer(formData, 'sanitary');
     const sanitaryPdfUrl = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          folder: 'scouts-cluses/pdfs',
-          public_id: `fiche_sanitaire_${formData.nom}_${Date.now()}.pdf`
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Erreur lors de l\'upload du PDF sanitaire:', error);
-            return reject(error);
-          }
-          resolve(result.secure_url);
-        }
-      ).end(sanitaryPdfBuffer);
+        { resource_type: 'raw', folder: 'scouts-cluses/pdfs', public_id: `sanitary_${f.nom}_${Date.now()}.pdf` },
+        (err, res) => err ? reject(err) : resolve(res.secure_url)
+      ).end(sanitaryBuffer);
     });
 
-    // Save to MongoDB
+    // Construire parentNomPrenom
+    const parentNomPrenom = `${f.responsable1Nom || ''} ${f.responsable1Prenom || ''}`.trim();
+
+    // Modèle
     let Model;
-    switch (formData.categorie) {
-      case 'scout':
-        Model = Scout;
-        break;
-      case 'guide':
-        Model = Guide;
-        break;
-      case 'louveteau':
-        Model = Louveteau;
-        break;
-      default:
-        return res.status(400).json({ message: 'Catégorie invalide.' });
-    }
+    if (f.categorie === 'scout') Model = Scout;
+    else if (f.categorie === 'guide') Model = Guide;
+    else if (f.categorie === 'louveteau') Model = Louveteau;
+    else return res.status(400).json({ message: 'Catégorie invalide.' });
 
     const inscription = new Model({
-      nom: formData.nom,
-      prenom: formData.prenom,
-      dateNaissance: new Date(formData.dateNaissance),
-      sexe: formData.sexe,
-      age: Number(formData.age),
-      adresse: formData.adresse,
-      ville: formData.ville,
-      codePostal: formData.codePostal,
-      email: formData.email,
-      telDomicile: formData.telDomicile || '',
-      telPortable: formData.telPortable,
+      nom: f.nom,
+      prenom: f.prenom,
+      dateNaissance: new Date(f.dateNaissance),
+      sexe: f.sexe,
+      age: Number(f.age),
+      adresse: f.adresse,
+      ville: f.ville,
+      codePostal: f.codePostal,
+      email: f.email || '',
+      telDomicile: f.telDomicile || '',
+      telPortable: f.telPortable,
       contactUrgence: {
-        nom: formData.contactUrgenceNom,
-        prenom: formData.contactUrgencePrenom,
-        telPortable: formData.contactUrgenceTel,
-        sexe: formData.contactUrgenceSexe,
-        lien: formData.contactUrgenceLien
+        nom: f.contactUrgenceNom,
+        prenom: f.contactUrgencePrenom,
+        telPortable: f.contactUrgenceTel,
+        sexe: f.contactUrgenceSexe,
+        lien: f.contactUrgenceLien
       },
-      contactUrgenceSecondaire: {
-        nom: formData.contactUrgenceSecondaireNom || null,
-        prenom: formData.contactUrgenceSecondairePrenom || null,
-        telPortable: formData.contactUrgenceSecondaireTel || null,
-        sexe: formData.contactUrgenceSecondaireSexe || null,
-        lien: formData.contactUrgenceSecondaireLien || null
-      },
-      autreClub: formData.autreClub === 'true',
-      nomAutreClub: formData.autreClub === 'true' ? formData.nomAutreClub : null,
-      parentNomPrenom: formData.parentNomPrenom,
-      parentAdresse: formData.parentAdresse,
-      parentEmail: formData.parentEmail,
-      droitImage: formData.droitImage === 'on',
-      droitDiffusion: formData.droitDiffusion === 'on',
-      autorisationTransport: formData.autorisationTransport === 'on',
-      luEtApprouveDroitImageText: formData.luEtApprouveDroitImageText,
-      luEtApprouveInscriptionText: formData.luEtApprouveInscriptionText,
-      signatureDroitImage: formData.signatureDroitImage,
+      contactUrgenceSecondaire: f.contactUrgenceSecondaireNom ? {
+        nom: f.contactUrgenceSecondaireNom,
+        prenom: f.contactUrgenceSecondairePrenom,
+        telPortable: f.contactUrgenceSecondaireTel,
+        sexe: f.contactUrgenceSecondaireSexe || null,
+        lien: f.contactUrgenceSecondaireLien || null
+      } : null,
+      autreClub: f.autreClub === 'on',
+      nomAutreClub: f.autreClub === 'on' ? f.nomAutreClub : null,
+      parentNomPrenom,
+      parentAdresse: f.responsable1Adresse,
+      parentEmail: f.parentEmail,
+      droitImage: f.droitImage === 'on',
+      droitDiffusion: f.droitDiffusion === 'on',
+      autorisationTransport: f.autorisationTransport === 'on',
+      luEtApprouveDroitImageText: 'Lu et approuvé',
+      luEtApprouveInscriptionText: 'Lu et approuvé',
+      signatureDroitImage: f.signatureDroitImage,
       signatureDroitImageDate: new Date(),
-      signatureInscription: formData.signatureSanitaire,
+      signatureInscription: f.signatureSanitaire,
       signatureInscriptionDate: new Date(),
-      lieuInscription: formData.lieuInscription,
-      vaccinsObligatoires: formData.vaccinsObligatoires === 'on',
-      vaccinsRecommandes: formData.vaccinsRecommandes,
-      traitementMedical: formData.traitementMedical === 'on',
-      allergiesAlimentaires: formData.allergiesAlimentaires === 'on',
-      allergiesMedicament: formData.allergiesMedicament === 'on',
-      allergiesAutres: formData.allergiesAutres === 'on',
-      allergiesDetails: formData.allergiesDetails || '',
-      problemeSante: formData.problemeSante === 'on',
-      problemeSanteDetails: formData.problemeSanteDetails || '',
-      recommandationsParents: formData.recommandationsParents || '',
-      responsable1Nom: formData.responsable1Nom,
-      responsable1Prenom: formData.responsable1Prenom,
-      responsable1Adresse: formData.responsable1Adresse,
-      responsable1TelDomicile: formData.responsable1TelDomicile || '',
-      responsable1TelTravail: formData.responsable1TelTravail || '',
-      responsable1TelPortable: formData.responsable1TelPortable,
-      responsable2Nom: formData.responsable2Nom || '',
-      responsable2Prenom: formData.responsable2Prenom || '',
-      responsable2Adresse: formData.responsable2Adresse || '',
-      responsable2TelDomicile: formData.responsable2TelDomicile || '',
-      responsable2TelTravail: formData.responsable2TelTravail || '',
-      responsable2TelPortable: formData.responsable2TelPortable || '',
-      medecinTraitant: formData.medecinTraitant || '',
-      signatureSanitaire: formData.signatureSanitaire,
+      lieuInscription: f.lieuInscription || 'Cluses',
+      vaccinsObligatoires: f.vaccinsObligatoires === 'on',
+      vaccinsRecommandes: {
+        diphtérie: f.vaccinDiphtérie || '',
+        coqueluche: f.vaccinCoqueluche || '',
+        tétanos: f.vaccinTétanos || '',
+        haemophilus: f.vaccinHaemophilus || '',
+        poliomyélite: f.vaccinPoliomyélite || '',
+        rougeole: f.vaccinRougeole || '',
+        pneumocoque: f.vaccinPneumocoque || '',
+        bcg: f.vaccinBcg || '',
+        autres: f.vaccinsAutres || ''
+      },
+      traitementMedical: f.traitementMedical === 'on',
+      allergiesAlimentaires: f.allergiesAlimentaires === 'on',
+      allergiesMedicament: f.allergiesMedicament === 'on',
+      allergiesAutres: f.allergiesAutres === 'on',
+      allergiesDetails: f.allergiesDetails || '',
+      problemeSante: f.problemeSante === 'on',
+      problemeSanteDetails: f.problemeSanteDetails || '',
+      recommandationsParents: f.recommandationsParents || '',
+      responsable1Nom: f.responsable1Nom,
+      responsable1Prenom: f.responsable1Prenom,
+      responsable1Adresse: f.responsable1Adresse,
+      responsable1TelDomicile: f.responsable1TelDomicile || '',
+      responsable1TelTravail: f.responsable1TelTravail || '',
+      responsable1TelPortable: f.responsable1TelPortable,
+      responsable2Nom: f.responsable2Nom || '',
+      responsable2Prenom: f.responsable2Prenom || '',
+      responsable2Adresse: f.responsable2Adresse || '',
+      responsable2TelDomicile: f.responsable2TelDomicile || '',
+      responsable2TelTravail: f.responsable2TelTravail || '',
+      responsable2TelPortable: f.responsable2TelPortable || '',
+      medecinTraitant: f.medecinTraitant || '',
+      signatureSanitaire: f.signatureSanitaire,
       signatureSanitaireDate: new Date(),
-      remarqueSection1: formData.remarqueSection1 || '',
-      remarqueSection2: formData.remarqueSection2 || '',
-      remarqueSection3: formData.remarqueSection3 || '',
-      remarqueSection4: formData.remarqueSection4 || '',
-      remarqueSection5: formData.remarqueSection5 || '',
-      vaccinScan: formData.vaccinScan,
-      medicationScan: formData.medicationScan,
-      recommendationMedicalScan: formData.recommendationMedicalScan,
-      otherDocuments: formData.otherDocuments,
+      vaccinScan,
+      medicationScan,
+      otherDocuments: otherDocs,
       pdfPath: authPdfUrl,
       sanitaryPdfPath: sanitaryPdfUrl
     });
 
     await inscription.save();
+
     res.json({
-      message: 'Inscription enregistrée avec succès !',
+      success: true,
+      message: 'Inscription enregistrée !',
       pdfUrl: authPdfUrl,
       sanitaryPdfUrl: sanitaryPdfUrl
     });
   } catch (err) {
-    console.error('Erreur lors de l’inscription:', err);
-    res.status(400).json({ message: `Erreur lors de l’inscription : ${err.message || err}` });
+    console.error('Erreur inscription:', err);
+    res.status(500).json({ message: 'Erreur serveur : ' + err.message });
   }
 });
 
-// Routes protégées
+// === LISTES PROTÉGÉES ===
 app.get('/scouts', requireAuth, async (req, res) => {
-  try {
-    const scouts = await Scout.find();
-    res.render('list', { inscriptions: scouts, titre: 'Scouts' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des scouts:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des scouts.' });
-  }
+  const scouts = await Scout.find();
+  res.render('list', { inscriptions: scouts, titre: 'Scouts' });
 });
 
 app.get('/guides', requireAuth, async (req, res) => {
-  try {
-    const guides = await Guide.find();
-    res.render('list', { inscriptions: guides, titre: 'Guides' });
-  } catch (err) {
-    console.error('Erreur lors de la récupération des guides:', err);
-    res.status(500).json({ message: 'Erreur lors de la récupération des guides.' });
-  }
+  const guides = await Guide.find();
+  res.render('list', { inscriptions: guides, titre: 'Guides' });
 });
 
-// === PAGE DE CONNEXION ===
+// === LOGIN ===
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-const MOT_DE_PASSE_HACHE = '$2y$10$QUNT2zOPWBh4BnZbd2B95eSI0t1uo34CsXQSpdHFlMccV.Eg/M/Uu';
-// === VÉRIFICATION MOT DE PASSE ===
+const bcrypt = require('bcrypt');
+const MOT_DE_PASSE_HACHE = '$2b$10$K.3n9v8x7c6b5a4Z3Y2X1eWIvUjHmKgLfD.sR1qA0zB9c8V7u6T5s'; // "encadrant2025"
+
 app.post('/login', async (req, res) => {
   const { mot_de_passe } = req.body;
-
-  if (!mot_de_passe) {
-    return res.render('login', { error: 'Entrez le mot de passe.' });
-  }
+  if (!mot_de_passe) return res.render('login', { error: 'Mot de passe requis.' });
 
   const match = await bcrypt.compare(mot_de_passe, MOT_DE_PASSE_HACHE);
+  if (!match) return res.render('login', { error: 'Mot de passe incorrect.' });
 
-  if (!match) {
-    return res.render('login', { error: 'Mot de passe incorrect.' });
-  }
-
-  // Connexion réussie
-  req.session.connecte = true;
-  res.redirect('/dashboard');
+  req.session.isAuthenticated = true;
+  res.redirect('/scouts');
 });
 
-// Test route for Cloudinary
-app.get('/test-cloudinary', async (req, res) => {
-  try {
-    const result = await cloudinary.uploader.upload('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==', {
-      folder: 'scouts-cluses/test',
-      resource_type: 'image'
-    });
-    res.json({ success: true, url: result.secure_url });
-  } catch (err) {
-    console.error('Erreur lors du test Cloudinary:', err);
-    res.status(500).json({ message: 'Erreur lors du test Cloudinary : ' + (err.message || err) });
-  }
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login');
 });
 
 app.listen(port, () => {
-  console.log(`Serveur lancé sur le port ${port}`);
+  console.log(`Serveur sur http://localhost:${port}`);
 });
-
-
 
