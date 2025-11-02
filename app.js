@@ -71,15 +71,31 @@ app.use(session({
   }
 }));
 
-// MongoDB
+// === CONNEXION MONGODB (ROBUSTE + LOGS) ===
 const connectWithRetry = () => {
-  mongoose.connect(process.env.MONGODB_URI, { maxPoolSize: 10 })
-    .then(() => console.log('Connecté à MongoDB'))
-    .catch(err => {
-      console.error('Erreur MongoDB:', err);
-      setTimeout(connectWithRetry, 5000);
-    });
+  console.log('Tentative de connexion à MongoDB...');
+  console.log('URL utilisée :', process.env.MONGODB_URI?.replace(/:[^:@]+@/, ':***@')); // Masque le mot de passe
+
+  mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 5000,
+    maxPoolSize: 10,
+    retryWrites: true,
+    w: 'majority'
+  })
+  .then(() => {
+    console.log('Connecté à MongoDB avec succès !');
+  })
+  .catch(err => {
+    console.error('Échec connexion MongoDB :', err.message);
+    console.log('Nouvelle tentative dans 5 secondes...');
+    setTimeout(connectWithRetry, 5000);
+  });
 };
+
+// Démarre la connexion
 connectWithRetry();
 
 // Auth middleware
@@ -399,6 +415,7 @@ app.get('/logout', (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur sur http://localhost:${port}`);
 });
+
 
 
 
