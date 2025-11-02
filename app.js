@@ -369,7 +369,7 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const MOT_DE_PASSE_HACHE = '$2b$10$K.3n9v8x7c6b5a4Z3Y2X1eWIvUjHmKgLfD.sR1qA0zB9c8V7u6T5s'; // "encadrant2025"
 
 app.post('/login', async (req, res) => {
@@ -391,6 +391,7 @@ app.get('/logout', (req, res) => {
 app.listen(port, () => {
   console.log(`Serveur sur http://localhost:${port}`);
 });
+
 
 
 
