@@ -51,7 +51,7 @@ npm install
 # 3. Crée le .env
 cp .env.example .env
 
-# 4. Remplis le .env (très important !)
+# 4. Remplis le .env
 Contenu minimal du .env :
 env# ────────────────────────────────────────────────
 #  MongoDB (Railway ou Atlas)
@@ -64,24 +64,20 @@ CLOUDINARY_KEY=ton_api_key
 CLOUDINARY_SECRET=ton_api_secret
 
 # ────────────────────────────────────────────────
-#  Port local (change si besoin)
+#  Port local
 PORT=3000
 
 # ────────────────────────────────────────────────
-#  Secret session (change-le vraiment !)
-SESSION_SECRET=une_très_longue_chaine_aléatoire_et_secrète_ici
+#  Secret session 
+SESSION_SECRET=xxx
 
 # ────────────────────────────────────────────────
-#  Mot de passe unique encadrants (haché)
+#  Mot de passe unique encadrants
 #  → voir section "Changer le mot de passe encadrants"
 MOT_DE_PASSE_HACHE=$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 Lancer le projet en local
 Bash# Option 1 : simple
 node app.js
-
-# Option 2 : avec rechargement auto (recommandé)
-npm install -g nodemon
-nodemon app.js
 
 # Puis ouvre ton navigateur :
 http://localhost:3000
