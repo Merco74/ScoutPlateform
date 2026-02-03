@@ -40,7 +40,7 @@ C’est simple, rapide, légal et tout est imprimable.
 
 ## Installation locale (étape par étape)
 
-```bash
+
 # 1. Récupère le projet
 git clone https://github.com/ton-compte/scouts-cluses-inscription.git
 cd scouts-cluses-inscription
