@@ -1,0 +1,33 @@
+<%# views/historique-inscription.ejs %>
+<% titre = "Historique — " + enfant.prenom %>
+<%- include('partials/_header') %>
+<div class="container py-5">
+  <h2 class="mb-4"><i class="bi bi-clock-history me-2 text-success"></i>Historique — <%= enfant.prenom %> <%= enfant.nom %></h2>
+  <% versions.forEach((v, idx) => { %>
+    <div class="step-card mb-3" style="border-left:4px solid <%= v.statut === 'validee' ? 'var(--success)' : v.statut === 'refusee' ? '#dc3545' : v.statut === 'archivee' ? '#6c757d' : '#0d6efd' %>">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h5 class="mb-1">Version <%= v.version %> <% if (idx === 0) { %><span class="badge bg-primary ms-1">Actuelle</span><% } %></h5>
+          <p class="text-muted small mb-1">
+            Soumis le <%= new Date(v.dateInscription).toLocaleDateString('fr-FR') %> &bull;
+            <%= v.typeInscription === 'camp' ? 'Camp' : 'Année' %> : <%= v.anneeScoute %>
+          </p>
+          <span class="badge <%= v.statut === 'validee' ? 'bg-success' : v.statut === 'refusee' ? 'bg-danger' : v.statut === 'archivee' ? 'bg-secondary' : 'bg-primary' %>">
+            <%= v.statut === 'validee' ? 'Validée' : v.statut === 'refusee' ? 'Refusée' : v.statut === 'archivee' ? 'Archivée' : 'En attente' %>
+          </span>
+          <% if (v.commentaireAdmin) { %>
+            <div class="mt-2 p-2 rounded-2" style="background:#fff3f3; border-left:3px solid #dc3545;">
+              <small><strong>Commentaire admin :</strong> <%= v.commentaireAdmin %></small>
+            </div>
+          <% } %>
+        </div>
+        <div class="d-flex gap-2">
+          <% if (v.pdfPath) { %><a href="<%= v.pdfPath %>" target="_blank" class="btn btn-sm btn-outline-success"><i class="bi bi-file-pdf me-1"></i>PDF</a><% } %>
+          <% if (v.sanitaryPdfPath) { %><a href="<%= v.sanitaryPdfPath %>" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-medical me-1"></i>Santé</a><% } %>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+  <a href="/espace-parent" class="btn btn-outline-secondary mt-2"><i class="bi bi-arrow-left me-1"></i>Retour</a>
+</div>
+<%- include('partials/_footer') %>

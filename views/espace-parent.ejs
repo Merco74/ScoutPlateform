@@ -1,0 +1,150 @@
+<%# views/espace-parent.ejs %>
+<% titre = "Mon espace" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+
+  <div class="hero mb-5">
+    <h1><i class="bi bi-house me-2"></i>Bonjour, <%= parent.prenom %> !</h1>
+    <p>Année scoute : <strong><%= anneeScoute %></strong></p>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Mes enfants</h2>
+    <a href="/ajouter-enfant" class="btn btn-primary-custom btn-custom">
+      <i class="bi bi-person-plus me-2"></i>Ajouter un enfant
+    </a>
+  </div>
+
+  <% if (enfants.length === 0) { %>
+    <div class="step-card text-center py-5">
+      <i class="bi bi-emoji-smile" style="font-size:3rem; color:var(--border)"></i>
+      <h5 class="mt-3 text-muted">Aucun enfant pour l'instant</h5>
+      <a href="/ajouter-enfant" class="btn btn-primary-custom btn-custom mt-2">
+        <i class="bi bi-person-plus me-2"></i>Ajouter un enfant
+      </a>
+    </div>
+  <% } else { %>
+    <div class="row g-4">
+      <% enfants.forEach(enfant => { %>
+        <div class="col-md-6">
+          <div class="step-card h-100 d-flex flex-column">
+
+            <%# En-tête %>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="step-number flex-shrink-0"><%= enfant.prenom.charAt(0).toUpperCase() %></div>
+              <div>
+                <h5 class="mb-0"><%= enfant.prenom %> <%= enfant.nom %></h5>
+                <small class="text-muted">
+                  <%= enfant.age %> ans &bull;
+                  <span class="badge bg-success text-capitalize"><%= enfant.categorie %></span>
+                  <% if (enfant.estMajeur) { %>
+                    <span class="badge bg-primary ms-1">Majeur</span>
+                  <% } %>
+                </small>
+              </div>
+            </div>
+
+            <%# ---- Inscription Année ---- %>
+            <div class="mb-3">
+              <h6 class="text-muted mb-2"><i class="bi bi-calendar me-1"></i>Inscription année <%= anneeScoute %></h6>
+              <% if (!config.inscriptionOuverte) { %>
+                <p class="text-muted small mb-1"><i class="bi bi-lock me-1"></i>Inscriptions fermées</p>
+              <% } else if (!enfant.inscriptionAnnee) { %>
+                <a href="/inscrire-enfant/<%= enfant._id %>?type=annee" class="btn btn-primary-custom btn-custom btn-sm mb-2">
+                  <i class="bi bi-pencil-square me-1"></i>Inscrire pour l'année
+                </a>
+              <% } else { %>
+                <%
+                  const ia = enfant.inscriptionAnnee;
+                  const badgeClass = ia.statut === 'validee'  ? 'bg-success' :
+                                     ia.statut === 'soumise'  ? 'bg-primary' :
+                                     ia.statut === 'refusee'  ? 'bg-danger'  : 'bg-warning text-dark';
+                  const badgeLabel = ia.statut === 'validee'  ? 'Validée' :
+                                     ia.statut === 'soumise'  ? 'En attente' :
+                                     ia.statut === 'refusee'  ? 'Refusée' : 'Brouillon';
+                %>
+                <span class="badge <%= badgeClass %> mb-2"><%= badgeLabel %></span>
+                <% if (ia.statut === 'refusee' && ia.commentaireAdmin) { %>
+                  <div class="p-2 rounded-2 mb-2" style="background:#fff3f3; border-left:3px solid #dc3545;">
+                    <small><i class="bi bi-chat-dots me-1"></i><%= ia.commentaireAdmin %></small>
+                  </div>
+                  <a href="/inscrire-enfant/<%= enfant._id %>?type=annee" class="btn btn-warning btn-sm mb-2">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Corriger et re-soumettre
+                  </a>
+                <% } %>
+                <% if (ia.statut === 'brouillon') { %>
+                  <a href="/inscrire-enfant/<%= enfant._id %>?type=annee" class="btn btn-outline-warning btn-sm mb-2">
+                    <i class="bi bi-pencil me-1"></i>Continuer le brouillon
+                  </a>
+                <% } %>
+                <div class="d-flex gap-2 flex-wrap">
+                  <% if (ia.pdfPath) { %><a href="<%= ia.pdfPath %>" target="_blank" class="btn btn-sm btn-outline-success"><i class="bi bi-file-pdf me-1"></i>Autorisation</a><% } %>
+                  <% if (ia.sanitaryPdfPath) { %><a href="<%= ia.sanitaryPdfPath %>" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-medical me-1"></i>Fiche santé</a><% } %>
+                </div>
+              <% } %>
+            </div>
+
+            <%# ---- Inscription Camp ---- %>
+            <div class="mb-3">
+              <h6 class="text-muted mb-2"><i class="bi bi-tent me-1"></i>Inscription camp<%= config.campNom ? ' — ' + config.campNom : '' %></h6>
+              <% if (!config.campOuvert) { %>
+                <p class="text-muted small mb-1"><i class="bi bi-lock me-1"></i>Inscriptions camp fermées</p>
+              <% } else if (!enfant.inscriptionCamp) { %>
+                <a href="/inscrire-enfant/<%= enfant._id %>?type=camp" class="btn btn-warning btn-sm mb-2">
+                  <i class="bi bi-pencil-square me-1"></i>Inscrire pour le camp
+                </a>
+              <% } else { %>
+                <%
+                  const ic = enfant.inscriptionCamp;
+                  const badgeCClass = ic.statut === 'validee'  ? 'bg-success' :
+                                      ic.statut === 'soumise'  ? 'bg-primary' :
+                                      ic.statut === 'refusee'  ? 'bg-danger'  : 'bg-warning text-dark';
+                  const badgeCLabel = ic.statut === 'validee'  ? 'Validée' :
+                                      ic.statut === 'soumise'  ? 'En attente' :
+                                      ic.statut === 'refusee'  ? 'Refusée' : 'Brouillon';
+                %>
+                <span class="badge <%= badgeCClass %> mb-2"><%= badgeCLabel %></span>
+                <% if (ic.statut === 'refusee' && ic.commentaireAdmin) { %>
+                  <div class="p-2 rounded-2 mb-2" style="background:#fff3f3; border-left:3px solid #dc3545;">
+                    <small><i class="bi bi-chat-dots me-1"></i><%= ic.commentaireAdmin %></small>
+                  </div>
+                  <a href="/inscrire-enfant/<%= enfant._id %>?type=camp" class="btn btn-warning btn-sm mb-2">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Corriger et re-soumettre
+                  </a>
+                <% } %>
+                <% if (ic.statut === 'brouillon') { %>
+                  <a href="/inscrire-enfant/<%= enfant._id %>?type=camp" class="btn btn-outline-warning btn-sm mb-2">
+                    <i class="bi bi-pencil me-1"></i>Continuer le brouillon
+                  </a>
+                <% } %>
+              <% } %>
+            </div>
+
+            <%# Actions profil %>
+            <div class="mt-auto">
+              <a href="/modifier-enfant/<%= enfant._id %>" class="btn btn-sm btn-outline-secondary w-100">
+                <i class="bi bi-pencil me-1"></i>Modifier le profil
+              </a>
+            </div>
+
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <%# Profil parent %>
+  <div class="step-card mt-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h5 class="mb-1"><i class="bi bi-person-circle me-2 text-success"></i>Mon profil</h5>
+        <p class="text-muted mb-0"><%= parent.adresse || '' %><% if (parent.adresse) { %>, <% } %><%= parent.codePostal || '' %> <%= parent.ville || '' %> &bull; <%= parent.telPortable %></p>
+      </div>
+      <a href="/profil" class="btn btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Modifier</a>
+    </div>
+  </div>
+
+</div>
+
+<%- include('partials/_footer') %>

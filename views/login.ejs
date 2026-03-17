@@ -1,0 +1,36 @@
+<%# views/login.ejs — accès admin encadrants %>
+<% titre = "Accès encadrants" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <div class="step-card">
+        <h2 class="mb-4"><i class="bi bi-shield-lock me-2 text-success"></i>Accès encadrants</h2>
+
+        <% if (error) { %>
+          <div class="alert-custom alert-danger-custom mb-4">
+            <i class="bi bi-exclamation-circle me-2"></i><%= error %>
+          </div>
+        <% } %>
+
+        <form action="/admin/login" method="POST">
+          <div class="form-floating-custom mb-4">
+            <input type="password" class="form-control" id="password" name="password"
+                   placeholder="Mot de passe" required autocomplete="current-password">
+            <label for="password">Mot de passe encadrant</label>
+          </div>
+          <button type="submit" class="btn btn-primary-custom btn-custom w-100">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Accéder
+          </button>
+        </form>
+
+        <div class="text-center mt-4">
+          <a href="/" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Retour à l'accueil</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>

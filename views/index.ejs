@@ -1,0 +1,74 @@
+<%# views/index.ejs %>
+<% titre = "Accueil" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="hero text-center mb-5">
+    <h1><i class="bi bi-tree-fill me-3"></i>Scouts & Guides de Cluses</h1>
+    <p class="lead">Inscrivez vos enfants en quelques minutes. Vos données sont sauvegardées pour les années suivantes.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
+      <% if (utilisateurConnecte) { %>
+        <a href="/espace" class="btn btn-primary-custom btn-custom">
+          <i class="bi bi-house me-2"></i>Mon espace parent
+        </a>
+      <% } else { %>
+        <a href="/inscription" class="btn btn-primary-custom btn-custom">
+          <i class="bi bi-person-plus me-2"></i>Créer mon compte
+        </a>
+        <a href="/connexion" class="btn btn-outline-light btn-custom">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <div class="step-number mx-auto mb-3">1</div>
+        <h5>Créez votre compte</h5>
+        <p class="text-muted">Renseignez vos informations une seule fois. Elles seront pré-remplies pour tous vos enfants.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <div class="step-number mx-auto mb-3">2</div>
+        <h5>Ajoutez vos enfants</h5>
+        <p class="text-muted">Créez le profil de chaque enfant avec sa fiche sanitaire. Modifiez-les à tout moment.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <div class="step-number mx-auto mb-3">3</div>
+        <h5>Inscrivez chaque année</h5>
+        <p class="text-muted">Chaque année, re-signez les documents et payez la cotisation. C'est tout !</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <i class="bi bi-shield-check text-success" style="font-size:2.5rem"></i>
+        <h6 class="mt-3">RGPD & Sécurisé</h6>
+        <p class="text-muted small">Données chiffrées, hébergées en France, jamais revendues.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <i class="bi bi-file-earmark-pdf text-danger" style="font-size:2.5rem"></i>
+        <h6 class="mt-3">PDFs automatiques</h6>
+        <p class="text-muted small">Autorisation et fiche sanitaire générées instantanément après inscription.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="step-card text-center h-100">
+        <i class="bi bi-arrow-repeat text-primary" style="font-size:2.5rem"></i>
+        <h6 class="mt-3">Réinscription rapide</h6>
+        <p class="text-muted small">L'année suivante, vos données sont là. Modifiez ce qui a changé, re-signez, c'est fait.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>

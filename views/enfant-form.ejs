@@ -1,0 +1,292 @@
+<%# views/enfant-form.ejs %>
+<% titre = enfant ? "Modifier " + enfant.prenom : "Ajouter un enfant" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="step-card">
+    <h2 class="mb-1">
+      <i class="bi bi-<%= enfant ? 'pencil' : 'person-plus' %> me-2 text-success"></i>
+      <%= enfant ? 'Modifier ' + enfant.prenom + ' ' + enfant.nom : 'Ajouter un enfant' %>
+    </h2>
+    <p class="text-muted mb-4">
+      <%= enfant
+        ? 'Mettez à jour le profil. Les modifications seront appliquées aux prochaines inscriptions.'
+        : 'Ces informations sont sauvegardées et pré-remplies chaque année.' %>
+    </p>
+
+    <% if (erreur) { %>
+      <div class="alert-custom alert-danger-custom mb-4"><i class="bi bi-exclamation-circle me-2"></i><%= erreur %></div>
+    <% } %>
+
+    <form action="<%= enfant ? '/modifier-enfant/' + enfant._id : '/ajouter-enfant' %>"
+          method="POST" enctype="multipart/form-data" novalidate>
+
+      <%# ---- IDENTITÉ ---- %>
+      <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité de l'enfant</h5>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" id="nom" name="nom"
+                   value="<%= enfant?.nom || '' %>" required>
+            <label for="nom">Nom *</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" id="prenom" name="prenom"
+                   value="<%= enfant?.prenom || '' %>" required>
+            <label for="prenom">Prénom *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="date" class="form-control" id="dateNaissance" name="dateNaissance"
+                   value="<%= enfant ? new Date(enfant.dateNaissance).toISOString().split('T')[0] : '' %>"
+                   required oninput="calculerAge(this)">
+            <label for="dateNaissance">Date de naissance *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <select class="form-select" id="sexe" name="sexe" required>
+              <option value="">Choisir</option>
+              <option value="Masculin" <%= enfant?.sexe === 'Masculin' ? 'selected' : '' %>>Masculin</option>
+              <option value="Féminin"  <%= enfant?.sexe === 'Féminin'  ? 'selected' : '' %>>Féminin</option>
+            </select>
+            <label for="sexe">Sexe *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <select class="form-select" id="categorie" name="categorie" required>
+              <option value="">Choisir</option>
+              <option value="louveteau" <%= enfant?.categorie === 'louveteau' ? 'selected' : '' %>>Louveteaux (8-11 ans)</option>
+              <option value="scout"     <%= enfant?.categorie === 'scout'     ? 'selected' : '' %>>Scouts (11-17 ans)</option>
+              <option value="guide"     <%= enfant?.categorie === 'guide'     ? 'selected' : '' %>>Guides (11-17 ans)</option>
+            </select>
+            <label for="categorie">Catégorie *</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="autreClub" name="autreClub"
+                   <%= enfant?.autreClub ? 'checked' : '' %> onchange="toggleAutreClub(this)">
+            <label class="form-check-label" for="autreClub">Membre d'un autre club</label>
+          </div>
+          <div id="autreClubDiv" class="mt-2 <%= !enfant?.autreClub ? 'd-none' : '' %>">
+            <div class="form-floating-custom">
+              <input type="text" class="form-control" id="nomAutreClub" name="nomAutreClub"
+                     value="<%= enfant?.nomAutreClub || '' %>">
+              <label for="nomAutreClub">Nom du club</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ---- CONTACT D'URGENCE ---- %>
+      <h5 class="text-success mb-3"><i class="bi bi-telephone-fill me-2"></i>Contact d'urgence principal</h5>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" name="contactUrgenceNom"
+                   value="<%= enfant?.contactUrgence?.nom || '' %>" required>
+            <label>Nom *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" name="contactUrgencePrenom"
+                   value="<%= enfant?.contactUrgence?.prenom || '' %>" required>
+            <label>Prénom *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="tel" class="form-control" name="contactUrgenceTel"
+                   value="<%= enfant?.contactUrgence?.telPortable || '' %>"
+                   pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)">
+            <label>Tél. portable *</label>
+            <div class="invalid-feedback">Format : 06XXXXXXXX</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating-custom">
+            <select class="form-select" name="contactUrgenceSexe" required>
+              <option value="">Choisir</option>
+              <option value="Homme" <%= enfant?.contactUrgence?.sexe === 'Homme' ? 'selected' : '' %>>Homme</option>
+              <option value="Femme" <%= enfant?.contactUrgence?.sexe === 'Femme' ? 'selected' : '' %>>Femme</option>
+            </select>
+            <label>Sexe *</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating-custom">
+            <select class="form-select" name="contactUrgenceLien" required>
+              <option value="">Choisir</option>
+              <option value="Parents"      <%= enfant?.contactUrgence?.lien === 'Parents'      ? 'selected' : '' %>>Parents</option>
+              <option value="Famille"      <%= enfant?.contactUrgence?.lien === 'Famille'      ? 'selected' : '' %>>Famille</option>
+              <option value="Tuteur légal" <%= enfant?.contactUrgence?.lien === 'Tuteur légal' ? 'selected' : '' %>>Tuteur légal</option>
+            </select>
+            <label>Lien *</label>
+          </div>
+        </div>
+      </div>
+
+      <%# Contact urgence secondaire %>
+      <div class="mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleContact2">
+          <i class="bi bi-plus-circle me-1"></i>Ajouter un contact d'urgence secondaire
+        </button>
+      </div>
+      <div id="contact2Section" class="<%= enfant?.contactUrgenceSecondaire?.nom ? '' : 'd-none' %> mb-4">
+        <h5 class="text-success mb-3"><i class="bi bi-telephone me-2"></i>Contact d'urgence secondaire</h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="form-floating-custom">
+              <input type="text" class="form-control" name="contactUrgenceSecondaireNom"
+                     value="<%= enfant?.contactUrgenceSecondaire?.nom || '' %>">
+              <label>Nom</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-floating-custom">
+              <input type="text" class="form-control" name="contactUrgenceSecondairePrenom"
+                     value="<%= enfant?.contactUrgenceSecondaire?.prenom || '' %>">
+              <label>Prénom</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-floating-custom">
+              <input type="tel" class="form-control" name="contactUrgenceSecondaireTel"
+                     value="<%= enfant?.contactUrgenceSecondaire?.telPortable || '' %>"
+                     oninput="validerTel(this)">
+              <label>Tél. portable</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ---- FICHE SANITAIRE ---- %>
+      <h5 class="text-success mb-3"><i class="bi bi-heart-pulse me-2"></i>Fiche sanitaire</h5>
+      <div class="alert-custom p-3 mb-4" style="background:#f8f9fa; border-left:4px solid var(--border);">
+        <small><i class="bi bi-shield-lock me-1"></i>Document confidentiel — RGPD respecté</small>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <div class="form-check form-switch p-3 bg-light rounded-3">
+            <input class="form-check-input" type="checkbox" id="traitementMedical" name="traitementMedical"
+                   <%= enfant?.traitementMedical ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="traitementMedical">Traitement en cours</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check form-switch p-3 bg-light rounded-3">
+            <input class="form-check-input" type="checkbox" id="allergiesAlimentaires" name="allergiesAlimentaires"
+                   <%= enfant?.allergiesAlimentaires ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="allergiesAlimentaires">Allergies alimentaires</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check form-switch p-3 bg-light rounded-3">
+            <input class="form-check-input" type="checkbox" id="allergiesMedicament" name="allergiesMedicament"
+                   <%= enfant?.allergiesMedicament ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="allergiesMedicament">Allergies médicaments</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check form-switch p-3 bg-light rounded-3">
+            <input class="form-check-input" type="checkbox" id="problemeSante" name="problemeSante"
+                   <%= enfant?.problemeSante ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="problemeSante">Problème de santé</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <div class="form-floating-custom">
+            <textarea class="form-control" id="allergiesDetails" name="allergiesDetails"
+                      rows="2" style="height:80px"><%= enfant?.allergiesDetails || '' %></textarea>
+            <label for="allergiesDetails">Détails allergies / traitements</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-floating-custom">
+            <textarea class="form-control" id="problemeSanteDetails" name="problemeSanteDetails"
+                      rows="2" style="height:80px"><%= enfant?.problemeSanteDetails || '' %></textarea>
+            <label for="problemeSanteDetails">Détails problème de santé</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-floating-custom">
+            <textarea class="form-control" id="recommandationsParents" name="recommandationsParents"
+                      rows="2" style="height:80px"><%= enfant?.recommandationsParents || '' %></textarea>
+            <label for="recommandationsParents">Recommandations particulières</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant"
+                   value="<%= enfant?.medecinTraitant || parent.medecinTraitant || '' %>">
+            <label for="medecinTraitant">Médecin traitant (hérité du profil parent si vide)</label>
+          </div>
+        </div>
+      </div>
+
+      <%# Documents médicaux %>
+      <h5 class="text-success mb-3"><i class="bi bi-paperclip me-2"></i>Documents médicaux</h5>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Carnet de vaccins</label>
+          <% if (enfant?.vaccinScan) { %>
+            <p class="small text-muted mb-1"><i class="bi bi-check-circle text-success me-1"></i>Fichier existant : <%= enfant.vaccinScan %></p>
+          <% } %>
+          <input type="file" class="form-control" name="vaccinScan" accept="application/pdf,image/*">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Ordonnances</label>
+          <% if (enfant?.medicationScan) { %>
+            <p class="small text-muted mb-1"><i class="bi bi-check-circle text-success me-1"></i>Fichier existant : <%= enfant.medicationScan %></p>
+          <% } %>
+          <input type="file" class="form-control" name="medicationScan" accept="application/pdf,image/*">
+        </div>
+      </div>
+
+      <div class="d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-primary-custom btn-custom">
+          <i class="bi bi-check-circle me-2"></i><%= enfant ? 'Enregistrer les modifications' : 'Créer le profil' %>
+        </button>
+        <a href="/espace-parent" class="btn btn-outline-secondary btn-custom">Annuler</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>
+
+<script>
+  function validerTel(i) {
+    const ok = /^0[6-7]\d{8}$/.test(i.value.replace(/\s/g, ''));
+    i.classList.toggle('is-invalid', !ok && i.value.length > 0);
+    i.classList.toggle('is-valid', ok);
+  }
+  function toggleAutreClub(cb) {
+    document.getElementById('autreClubDiv').classList.toggle('d-none', !cb.checked);
+  }
+  function calculerAge(input) {
+    if (!input.value) return;
+    const age = Math.floor((new Date() - new Date(input.value)) / (365.25 * 24 * 3600 * 1000));
+    const cat = document.getElementById('categorie');
+    if (age >= 8  && age <= 11) cat.value = 'louveteau';
+    else if (age >= 11 && age <= 17) cat.value = 'scout';
+  }
+  document.getElementById('toggleContact2').addEventListener('click', function () {
+    const s = document.getElementById('contact2Section');
+    s.classList.toggle('d-none');
+    this.innerHTML = s.classList.contains('d-none')
+      ? '<i class="bi bi-plus-circle me-1"></i>Ajouter un contact d\'urgence secondaire'
+      : '<i class="bi bi-dash-circle me-1"></i>Retirer le contact secondaire';
+  });
+</script>

@@ -1,0 +1,172 @@
+<%# views/profil-parent.ejs %>
+<% titre = "Mon profil" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="step-card">
+        <h2 class="mb-1"><i class="bi bi-person-circle me-2 text-success"></i>Mon profil</h2>
+        <p class="text-muted mb-4">Modifiez vos informations. Elles seront automatiquement appliquées aux prochaines inscriptions.</p>
+
+        <% if (erreur) { %>
+          <div class="alert-custom alert-danger-custom mb-4"><i class="bi bi-exclamation-circle me-2"></i><%= erreur %></div>
+        <% } %>
+        <% if (succes) { %>
+          <div class="alert-custom alert-success-custom mb-4"><i class="bi bi-check-circle me-2"></i><%= succes %></div>
+        <% } %>
+
+        <form action="/profil-parent" method="POST" novalidate>
+
+          <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="nom" name="nom" value="<%= parent.nom %>" required>
+                <label for="nom">Nom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="prenom" name="prenom" value="<%= parent.prenom %>" required>
+                <label for="prenom">Prénom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telPortable" name="telPortable"
+                       value="<%= parent.telPortable %>" pattern="^0[6-7]\d{8}$" required
+                       oninput="validerTel(this)">
+                <label for="telPortable">Tél. portable *</label>
+                <div class="invalid-feedback">Format : 06XXXXXXXX</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telDomicile" name="telDomicile" value="<%= parent.telDomicile || '' %>">
+                <label for="telDomicile">Tél. domicile</label>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="adresse" name="adresse" value="<%= parent.adresse %>" required>
+                <label for="adresse">Adresse *</label>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="ville" name="ville" value="<%= parent.ville %>" required>
+                <label for="ville">Ville *</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="codePostal" name="codePostal"
+                       value="<%= parent.codePostal %>" pattern="^\d{5}$" required
+                       oninput="validerCP(this)">
+                <label for="codePostal">Code postal *</label>
+                <div class="invalid-feedback">5 chiffres</div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-hospital me-2"></i>Médecin traitant</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant"
+                       value="<%= parent.medecinTraitant || '' %>">
+                <label for="medecinTraitant">Nom du médecin traitant</label>
+              </div>
+            </div>
+          </div>
+
+          <%# Second responsable %>
+          <div class="mb-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleResp2">
+              <i class="bi bi-<%= parent.responsable2 && parent.responsable2.nom ? 'dash' : 'plus' %>-circle me-1"></i>
+              <%= parent.responsable2 && parent.responsable2.nom ? 'Modifier' : 'Ajouter' %> un second responsable
+            </button>
+          </div>
+          <div id="resp2Section" class="<%= parent.responsable2 && parent.responsable2.nom ? '' : 'd-none' %> mb-4">
+            <h5 class="text-success mb-3"><i class="bi bi-people me-2"></i>Second responsable</h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" name="resp2Nom" value="<%= parent.responsable2?.nom || '' %>">
+                  <label>Nom</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" name="resp2Prenom" value="<%= parent.responsable2?.prenom || '' %>">
+                  <label>Prénom</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" name="resp2TelPortable" value="<%= parent.responsable2?.telPortable || '' %>">
+                  <label>Tél. portable</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" name="resp2TelTravail" value="<%= parent.responsable2?.telTravail || '' %>">
+                  <label>Tél. travail</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Changer le mot de passe <small class="text-muted fw-normal">(facultatif)</small></h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="nouveauMotDePasse" name="nouveauMotDePasse"
+                       placeholder="Nouveau mot de passe" minlength="8" autocomplete="new-password"
+                       oninput="validerMDP(this)">
+                <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+                <div class="invalid-feedback">8 caractères minimum</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="confirmMotDePasse" name="confirmMotDePasse"
+                       placeholder="Confirmer" autocomplete="new-password"
+                       oninput="validerConfirm(this)">
+                <label for="confirmMotDePasse">Confirmer le mot de passe</label>
+                <div class="invalid-feedback">Les mots de passe ne correspondent pas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary-custom btn-custom">
+              <i class="bi bi-check-circle me-2"></i>Enregistrer
+            </button>
+            <a href="/espace-parent" class="btn btn-outline-secondary btn-custom">Retour</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>
+
+<script>
+  function validerTel(i)     { const ok=/^0[6-7]\d{8}$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerCP(i)      { const ok=/^\d{5}$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerMDP(i)     { const ok=i.value.length>=8; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerConfirm(i) { const ok=i.value===document.getElementById('nouveauMotDePasse').value; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+
+  document.getElementById('toggleResp2').addEventListener('click', function() {
+    const s = document.getElementById('resp2Section');
+    s.classList.toggle('d-none');
+    this.querySelector('i').className = s.classList.contains('d-none') ? 'bi bi-plus-circle me-1' : 'bi bi-dash-circle me-1';
+  });
+</script>

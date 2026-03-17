@@ -1,0 +1,273 @@
+<%# views/admin.ejs %>
+<% titre = "Administration" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+
+  <div class="hero mb-5">
+    <h1><i class="bi bi-shield-fill me-2"></i>Administration</h1>
+    <p>Année scoute : <strong><%= anneeScoute %></strong></p>
+  </div>
+
+  <%# ---- STATS ---- %>
+  <h2 class="mb-4">Inscrits <%= anneeScoute %></h2>
+  <div class="row g-4 mb-5">
+    <% [['louveteaux','louveteau','stars','var(--accent)'],['scouts','scout','person-badge','var(--primary)'],['guides','guide','person-badge-fill','var(--secondary)']].forEach(([slug,key,icon,color]) => { %>
+      <div class="col-md-4">
+        <a href="/admin/inscrits/<%= slug %>" class="text-decoration-none">
+          <div class="step-card text-center h-100">
+            <i class="bi bi-<%= icon %>" style="font-size:2.5rem; color:<%= color %>"></i>
+            <h4 class="mt-2 text-capitalize"><%= slug %></h4>
+            <div class="display-4 fw-bold text-success"><%= stats[key] %></div>
+            <span class="btn btn-sm btn-outline-success mt-2">Voir la liste</span>
+          </div>
+        </a>
+      </div>
+    <% }) %>
+  </div>
+
+  <%# ---- FORMULAIRES EN ATTENTE ---- %>
+  <h2 class="mb-4">
+    Formulaires à valider
+    <% if (enAttente.length > 0) { %>
+      <span class="badge bg-warning text-dark ms-2"><%= enAttente.length %></span>
+    <% } %>
+  </h2>
+
+  <% if (enAttente.length === 0) { %>
+    <div class="step-card text-center py-4 mb-5">
+      <i class="bi bi-check-circle text-success" style="font-size:2rem"></i>
+      <p class="text-muted mt-2 mb-0">Aucun formulaire en attente.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive mb-5">
+      <table class="table table-hover align-middle">
+        <thead class="table-warning">
+          <tr>
+            <th>Enfant</th>
+            <th>Type</th>
+            <th>Catégorie</th>
+            <th>Parent</th>
+            <th>Soumis le</th>
+            <th>Documents</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% enAttente.forEach(i => { %>
+            <tr>
+              <td><strong><%= i.enfantId?.prenom %> <%= i.enfantId?.nom %></strong></td>
+              <td><span class="badge <%= i.typeInscription === 'camp' ? 'bg-warning text-dark' : 'bg-success' %>"><%= i.typeInscription === 'camp' ? 'Camp' : 'Année' %></span></td>
+              <td><span class="badge bg-secondary text-capitalize"><%= i.categorie %></span></td>
+              <td><%= i.utilisateurId?.prenom %> <%= i.utilisateurId?.nom %><br><small><%= i.utilisateurId?.email %></small></td>
+              <td><small><%= new Date(i.dateInscription).toLocaleDateString('fr-FR') %></small></td>
+              <td>
+                <% if (i.pdfPath) { %><a href="<%= i.pdfPath %>" target="_blank" class="btn btn-xs btn-outline-success py-0 px-2"><i class="bi bi-file-pdf"></i></a><% } %>
+                <% if (i.sanitaryPdfPath) { %><a href="<%= i.sanitaryPdfPath %>" target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-file-medical"></i></a><% } %>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-success btn-sm" onclick="validerFormulaire('<%= i._id %>', 'valider')">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                  <button class="btn btn-danger btn-sm" onclick="validerFormulaire('<%= i._id %>', 'refuser')">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <%# ---- CONFIGURATION INSCRIPTIONS ---- %>
+  <h2 class="mb-4">Configuration des inscriptions</h2>
+  <div class="step-card mb-5">
+    <form id="configForm">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h5 class="text-success mb-3"><i class="bi bi-calendar me-2"></i>Inscription Année</h5>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="inscriptionOuverte" name="inscriptionOuverte"
+                   <%= config.inscriptionOuverte ? 'checked' : '' %>>
+            <label class="form-check-label fw-bold" for="inscriptionOuverte">Inscriptions ouvertes</label>
+          </div>
+          <div class="form-floating-custom mb-3">
+            <input type="text" class="form-control" id="inscriptionAnneeActive" name="inscriptionAnneeActive"
+                   value="<%= config.inscriptionAnneeActive || '' %>" placeholder="ex: 2025-2026">
+            <label>Année active (ex: 2025-2026)</label>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Ouverture</label>
+              <input type="date" class="form-control" name="inscriptionDebutDate"
+                     value="<%= config.inscriptionDebutDate ? new Date(config.inscriptionDebutDate).toISOString().split('T')[0] : '' %>">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Fermeture</label>
+              <input type="date" class="form-control" name="inscriptionFinDate"
+                     value="<%= config.inscriptionFinDate ? new Date(config.inscriptionFinDate).toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+          <div class="form-floating-custom mt-3">
+            <input type="number" class="form-control" name="cotisationAnnee"
+                   value="<%= config.cotisationAnnee || 20 %>" min="0" step="0.01">
+            <label>Cotisation année (€)</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <h5 class="text-success mb-3"><i class="bi bi-tent me-2"></i>Inscription Camp</h5>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="campOuvert" name="campOuvert"
+                   <%= config.campOuvert ? 'checked' : '' %>>
+            <label class="form-check-label fw-bold" for="campOuvert">Inscriptions camp ouvertes</label>
+          </div>
+          <div class="form-floating-custom mb-3">
+            <input type="text" class="form-control" name="campNom"
+                   value="<%= config.campNom || '' %>" placeholder="ex: Camp été 2026">
+            <label>Nom du camp</label>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Ouverture</label>
+              <input type="date" class="form-control" name="campDebutDate"
+                     value="<%= config.campDebutDate ? new Date(config.campDebutDate).toISOString().split('T')[0] : '' %>">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Fermeture</label>
+              <input type="date" class="form-control" name="campFinDate"
+                     value="<%= config.campFinDate ? new Date(config.campFinDate).toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+          <div class="form-floating-custom mt-3">
+            <input type="number" class="form-control" name="cotisationCamp"
+                   value="<%= config.cotisationCamp || 50 %>" min="0" step="0.01">
+            <label>Cotisation camp (€)</label>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary-custom btn-custom mt-4">
+        <i class="bi bi-check-circle me-2"></i>Enregistrer la configuration
+      </button>
+      <div id="configMsg" class="mt-3 d-none"></div>
+    </form>
+  </div>
+
+  <%# ---- ENCADRANTS ---- %>
+  <h2 class="mb-4">Encadrants</h2>
+  <% const enAttenteEnc = encadrants.filter(e => e.encadrant?.statut === 'en_attente'); %>
+  <% const validesEnc   = encadrants.filter(e => e.encadrant?.statut === 'valide'); %>
+
+  <% if (enAttenteEnc.length > 0) { %>
+    <h5 class="text-warning mb-3"><i class="bi bi-hourglass-split me-2"></i>En attente <span class="badge bg-warning text-dark"><%= enAttenteEnc.length %></span></h5>
+    <div class="row g-3 mb-4">
+      <% enAttenteEnc.forEach(enc => { %>
+        <div class="col-md-6">
+          <div class="step-card" style="border-left:4px solid #ffc107;">
+            <div class="d-flex justify-content-between mb-3">
+              <div>
+                <h5 class="mb-0"><%= enc.prenom %> <%= enc.nom %></h5>
+                <small class="text-muted"><%= enc.email %> — <%= enc.telPortable %></small><br>
+                <small>Catégories : <strong><%= (enc.encadrant?.categories||[]).join(', ')||'Non précisé' %></strong></small>
+              </div>
+              <a href="/admin/encadrant/<%= enc._id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+            </div>
+            <div class="d-flex gap-2 flex-wrap mb-3">
+              <% if (enc.encadrant?.bafaScan) { %><a href="/uploads/<%= enc.encadrant.bafaScan %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>BAFA</a><% } else { %><span class="badge bg-secondary">BAFA manquant</span><% } %>
+              <% if (enc.encadrant?.casierJudiciaire) { %><a href="/uploads/<%= enc.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>Casier</a><% } else { %><span class="badge bg-secondary">Casier manquant</span><% } %>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-success btn-sm flex-fill" onclick="changerStatutEnc('<%= enc._id %>','valide')"><i class="bi bi-check-circle me-1"></i>Valider</button>
+              <button class="btn btn-danger btn-sm flex-fill" onclick="changerStatutEnc('<%= enc._id %>','refuse')"><i class="bi bi-x-circle me-1"></i>Refuser</button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (validesEnc.length > 0) { %>
+    <h5 class="text-success mb-3"><i class="bi bi-check-circle me-2"></i>Validés <span class="badge bg-success"><%= validesEnc.length %></span></h5>
+    <div class="table-responsive mb-4">
+      <table class="table table-striped align-middle">
+        <thead class="table-success"><tr><th>Nom</th><th>Email</th><th>Catégories</th><th>Action</th></tr></thead>
+        <tbody>
+          <% validesEnc.forEach(enc => { %>
+            <tr>
+              <td><strong><%= enc.prenom %> <%= enc.nom %></strong></td>
+              <td><%= enc.email %></td>
+              <td><% (enc.encadrant?.categories||[]).forEach(c => { %><span class="badge bg-success text-capitalize me-1"><%= c %></span><% }) %></td>
+              <td><button class="btn btn-sm btn-outline-danger" onclick="changerStatutEnc('<%= enc._id %>','refuse')"><i class="bi bi-x-circle me-1"></i>Révoquer</button></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (encadrants.length === 0) { %>
+    <div class="step-card text-center py-4"><p class="text-muted mb-0">Aucun encadrant inscrit.</p></div>
+  <% } %>
+
+  <div class="text-end mt-4">
+    <a href="/deconnexion" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right me-2"></i>Se déconnecter</a>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>
+
+<script>
+  // Validation formulaire inscription
+  async function validerFormulaire(id, action) {
+    let commentaire = '';
+    if (action === 'refuser') {
+      commentaire = prompt('Motif du refus (obligatoire) :') || '';
+      if (!commentaire.trim()) { alert('Le motif est obligatoire pour refuser.'); return; }
+    }
+    if (!confirm(`${action === 'valider' ? 'Valider' : 'Refuser'} ce formulaire ?`)) return;
+    const res  = await fetch(`/admin/inscription/${id}/valider`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, commentaire })
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('Erreur : ' + data.message);
+  }
+
+  // Validation encadrant
+  async function changerStatutEnc(id, statut) {
+    if (!confirm(`${statut === 'valide' ? 'Valider' : 'Refuser/révoquer'} cet encadrant ?`)) return;
+    const note = statut === 'refuse' ? (prompt('Motif (optionnel) :') || '') : '';
+    const res  = await fetch(`/admin/encadrant/${id}/statut`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ statut, noteAdmin: note })
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('Erreur : ' + data.message);
+  }
+
+  // Config inscriptions
+  document.getElementById('configForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const payload  = Object.fromEntries(formData.entries());
+    // Les checkboxes non cochées ne sont pas incluses → on les ajoute explicitement
+    ['inscriptionOuverte','campOuvert'].forEach(k => {
+      if (!payload[k]) payload[k] = '';
+    });
+    const res  = await fetch('/admin/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const msg  = document.getElementById('configMsg');
+    msg.classList.remove('d-none', 'alert-custom', 'alert-success-custom', 'alert-danger-custom');
+    msg.classList.add('alert-custom', data.success ? 'alert-success-custom' : 'alert-danger-custom');
+    msg.textContent = data.success ? '✅ Configuration enregistrée.' : '❌ Erreur.';
+    msg.classList.remove('d-none');
+    setTimeout(() => msg.classList.add('d-none'), 3000);
+  });
+</script>

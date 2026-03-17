@@ -1,0 +1,4 @@
+echo "node_modules/
+.env
+uploads/
+public/pdfs/" > .gitignore

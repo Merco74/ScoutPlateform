@@ -1,0 +1,187 @@
+<%# views/inscription.ejs — création de compte (parent + option encadrant) %>
+<% titre = "Créer mon compte" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="step-card">
+        <h2 class="mb-1"><i class="bi bi-person-plus me-2 text-success"></i>Créer mon compte</h2>
+        <p class="text-muted mb-4">Remplissez vos informations. Si vous êtes encadrant, cochez l'option en bas.</p>
+
+        <% if (erreur) { %>
+          <div class="alert-custom alert-danger-custom mb-4">
+            <i class="bi bi-exclamation-circle me-2"></i><%= erreur %>
+          </div>
+        <% } %>
+
+        <form action="/inscription" method="POST" enctype="multipart/form-data" novalidate>
+
+          <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="nom" name="nom" required>
+                <label for="nom">Nom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="prenom" name="prenom" required>
+                <label for="prenom">Prénom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telPortable" name="telPortable"
+                       pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)">
+                <label for="telPortable">Tél. portable (06/07) *</label>
+                <div class="invalid-feedback">Format : 06XXXXXXXX</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telDomicile" name="telDomicile">
+                <label for="telDomicile">Tél. domicile</label>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="adresse" name="adresse">
+                <label for="adresse">Adresse</label>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="ville" name="ville">
+                <label for="ville">Ville</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="codePostal" name="codePostal"
+                       pattern="^\d{5}$" oninput="validerCP(this)">
+                <label for="codePostal">Code postal</label>
+                <div class="invalid-feedback">5 chiffres</div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Identifiants</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="email" class="form-control" id="email" name="email"
+                       required autocomplete="email" oninput="validerEmail(this)">
+                <label for="email">Email *</label>
+                <div class="invalid-feedback">Email invalide</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="motDePasse" name="motDePasse"
+                       required minlength="8" autocomplete="new-password" oninput="validerMDP(this)">
+                <label for="motDePasse">Mot de passe * (8 car. min.)</label>
+                <div class="invalid-feedback">8 caractères minimum</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="motDePasseConfirm" name="motDePasseConfirm"
+                       required autocomplete="new-password" oninput="validerConfirm(this)">
+                <label for="motDePasseConfirm">Confirmer *</label>
+                <div class="invalid-feedback">Les mots de passe ne correspondent pas</div>
+              </div>
+            </div>
+          </div>
+
+          <%# ---- OPTION ENCADRANT ---- %>
+          <div class="p-4 rounded-3 mb-4" style="background:#f0faf0; border:2px solid var(--border);">
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="demandeEncadrant" name="demandeEncadrant"
+                     onchange="toggleEncadrant(this)">
+              <label class="form-check-label fw-bold fs-5" for="demandeEncadrant">
+                <i class="bi bi-shield-check me-2 text-success"></i>Je suis également encadrant
+              </label>
+            </div>
+            <p class="text-muted small mb-0">
+              Votre demande sera examinée par un administrateur avant validation.
+            </p>
+
+            <div id="encadrantSection" class="d-none mt-4">
+              <h6 class="text-success mb-3">Catégorie(s) encadrée(s)</h6>
+              <div class="d-flex gap-3 flex-wrap mb-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="louveteau" id="catLouveteau">
+                  <label class="form-check-label" for="catLouveteau">Louveteaux (8-11 ans)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="scout" id="catScout">
+                  <label class="form-check-label" for="catScout">Scouts (11-17 ans)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="guide" id="catGuide">
+                  <label class="form-check-label" for="catGuide">Guides (11-17 ans)</label>
+                </div>
+              </div>
+
+              <h6 class="text-success mb-3">Documents justificatifs</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">BAFA / diplôme d'animation</label>
+                  <input type="file" class="form-control" name="bafaScan" accept="application/pdf,image/*">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Extrait de casier judiciaire (bulletin n°3)</label>
+                  <input type="file" class="form-control" name="casierJudiciaire" accept="application/pdf,image/*">
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Autres documents</label>
+                  <input type="file" class="form-control" name="autresDocuments" accept="application/pdf,image/*" multiple>
+                </div>
+              </div>
+              <div class="mt-3 p-3 rounded-3" style="background:#fff3cd; border-left:4px solid #ffc107;">
+                <small><i class="bi bi-info-circle me-1"></i>
+                  Votre accès encadrant sera activé après validation de vos documents par l'administrateur.
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
+            <label class="form-check-label" for="acceptRGPD">
+              J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a> *
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom btn-custom w-100">
+            <i class="bi bi-check-circle me-2"></i>Créer mon compte
+          </button>
+        </form>
+
+        <hr class="my-4">
+        <p class="text-center text-muted mb-0">
+          Déjà un compte ? <a href="/connexion" class="fw-bold">Se connecter</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>
+
+<script>
+  function validerEmail(i)  { const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerTel(i)    { const ok=/^0[6-7]\d{8}$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerCP(i)     { const ok=/^\d{5}$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerMDP(i)    { const ok=i.value.length>=8; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerConfirm(i){ const ok=i.value===document.getElementById('motDePasse').value; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function toggleEncadrant(cb) {
+    document.getElementById('encadrantSection').classList.toggle('d-none', !cb.checked);
+  }
+</script>

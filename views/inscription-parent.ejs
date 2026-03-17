@@ -1,0 +1,213 @@
+<%# views/inscription-parent.ejs %>
+<% titre = "Créer mon compte" %>
+<%- include('partials/_header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="step-card">
+        <h2 class="mb-1"><i class="bi bi-person-plus me-2 text-success"></i>Créer mon compte parent</h2>
+        <p class="text-muted mb-4">Ces informations seront pré-remplies pour tous vos enfants.</p>
+
+        <% if (erreur) { %>
+          <div class="alert-custom alert-danger-custom mb-4">
+            <i class="bi bi-exclamation-circle"></i> <%= erreur %>
+          </div>
+        <% } %>
+
+        <form action="/inscription-parent" method="POST" novalidate>
+
+          <h5 class="text-success mt-2 mb-3"><i class="bi bi-person me-2"></i>Votre identité</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="nom" name="nom" placeholder="Nom" required>
+                <label for="nom">Nom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénom" required>
+                <label for="prenom">Prénom *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telPortable" name="telPortable"
+                       placeholder="06..." pattern="^0[6-7]\d{8}$" required
+                       oninput="validerTel(this)">
+                <label for="telPortable">Tél. portable (06/07) *</label>
+                <div class="invalid-feedback">Format attendu : 06XXXXXXXX ou 07XXXXXXXX</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telDomicile" name="telDomicile" placeholder="Tél. domicile">
+                <label for="telDomicile">Tél. domicile</label>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="adresse" name="adresse" placeholder="Adresse" required>
+                <label for="adresse">Adresse *</label>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="ville" name="ville" placeholder="Ville" required>
+                <label for="ville">Ville *</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="codePostal" name="codePostal"
+                       placeholder="Code postal" pattern="^\d{5}$" required
+                       oninput="validerCP(this)">
+                <label for="codePostal">Code postal *</label>
+                <div class="invalid-feedback">5 chiffres requis</div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-hospital me-2"></i>Médecin traitant</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant" placeholder="Dr...">
+                <label for="medecinTraitant">Nom du médecin traitant (facultatif)</label>
+              </div>
+            </div>
+          </div>
+
+          <%# Second responsable - optionnel %>
+          <div class="mb-4">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleResp2">
+              <i class="bi bi-plus-circle me-1"></i>Ajouter un second responsable
+            </button>
+          </div>
+          <div id="resp2Section" class="d-none mb-4">
+            <h5 class="text-success mb-3"><i class="bi bi-people me-2"></i>Second responsable</h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" id="resp2Nom" name="resp2Nom" placeholder="Nom">
+                  <label for="resp2Nom">Nom</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" id="resp2Prenom" name="resp2Prenom" placeholder="Prénom">
+                  <label for="resp2Prenom">Prénom</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" id="resp2TelPortable" name="resp2TelPortable" placeholder="06...">
+                  <label for="resp2TelPortable">Tél. portable</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" id="resp2TelTravail" name="resp2TelTravail" placeholder="Tél. travail">
+                  <label for="resp2TelTravail">Tél. travail</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Identifiants de connexion</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="form-floating-custom">
+                <input type="email" class="form-control" id="email" name="email"
+                       placeholder="Email" required autocomplete="email"
+                       oninput="validerEmail(this)">
+                <label for="email">Adresse email *</label>
+                <div class="invalid-feedback">Email invalide</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="motDePasse" name="motDePasse"
+                       placeholder="Mot de passe" required minlength="8" autocomplete="new-password"
+                       oninput="validerMDP(this)">
+                <label for="motDePasse">Mot de passe * (8 car. min.)</label>
+                <div class="invalid-feedback">8 caractères minimum</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating-custom">
+                <input type="password" class="form-control" id="motDePasseConfirm" name="motDePasseConfirm"
+                       placeholder="Confirmation" required autocomplete="new-password"
+                       oninput="validerConfirm(this)">
+                <label for="motDePasseConfirm">Confirmer le mot de passe *</label>
+                <div class="invalid-feedback">Les mots de passe ne correspondent pas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
+            <label class="form-check-label" for="acceptRGPD">
+              J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a> *
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom btn-custom w-100">
+            <i class="bi bi-check-circle me-2"></i>Créer mon compte
+          </button>
+        </form>
+
+        <hr class="my-4">
+        <p class="text-center text-muted mb-0">
+          Déjà un compte ? <a href="/connexion" class="fw-bold">Se connecter</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/_footer') %>
+
+<script>
+  // Validation en temps réel
+  function validerEmail(input) {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
+    input.classList.toggle('is-invalid', !ok && input.value.length > 0);
+    input.classList.toggle('is-valid',   ok);
+  }
+  function validerTel(input) {
+    const ok = /^0[6-7]\d{8}$/.test(input.value.replace(/\s/g, ''));
+    input.classList.toggle('is-invalid', !ok && input.value.length > 0);
+    input.classList.toggle('is-valid',   ok);
+  }
+  function validerCP(input) {
+    const ok = /^\d{5}$/.test(input.value);
+    input.classList.toggle('is-invalid', !ok && input.value.length > 0);
+    input.classList.toggle('is-valid',   ok);
+  }
+  function validerMDP(input) {
+    const ok = input.value.length >= 8;
+    input.classList.toggle('is-invalid', !ok && input.value.length > 0);
+    input.classList.toggle('is-valid',   ok);
+  }
+  function validerConfirm(input) {
+    const ok = input.value === document.getElementById('motDePasse').value;
+    input.classList.toggle('is-invalid', !ok && input.value.length > 0);
+    input.classList.toggle('is-valid',   ok);
+  }
+
+  // Toggle second responsable
+  document.getElementById('toggleResp2').addEventListener('click', function () {
+    const section = document.getElementById('resp2Section');
+    const visible = !section.classList.contains('d-none');
+    section.classList.toggle('d-none', visible);
+    this.innerHTML = visible
+      ? '<i class="bi bi-plus-circle me-1"></i>Ajouter un second responsable'
+      : '<i class="bi bi-dash-circle me-1"></i>Retirer le second responsable';
+  });
+</script>
