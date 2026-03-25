@@ -79,6 +79,44 @@
         <% } %>
       </div>
 
+      <%# ---- AUTORISATION ACTIVITÉS AUTONOMES (mineurs uniquement) ---- %>
+      <% if (!estMajeur) { %>
+        <h5 class="text-success mb-3 mt-4"><i class="bi bi-signpost-split me-2"></i>Autorisation activités autonomes</h5>
+        <div class="p-4 rounded-3 mb-4" style="background:#f0faf0; border:2px solid var(--border);">
+          <p class="small mb-3" style="text-align:justify;">
+            Certaines activités occasionnelles en autonomie peuvent être organisées pour accompagner
+            les jeunes vers une responsabilité progressive. Les modalités de ces activités sont fixées
+            en mesurant leur capacité d'autonomie individuelle et collective. Les jeunes concernés
+            participent à leur préparation avec l'équipe d'encadrement : repérage des lieux, mise à
+            disposition de moyens adaptés et de moyens de communication (téléphones portables).
+            L'équipe d'encadrement se tient à proximité pour intervenir en cas de besoin.
+          </p>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="autorisationActivitesAutonomes"
+                   name="autorisationActivitesAutonomes" onchange="toggleSignatureAutonomes(this)">
+            <label class="form-check-label fw-bold" for="autorisationActivitesAutonomes">
+              J'autorise mon enfant à participer aux activités autonomes dans les conditions décrites ci-dessus
+            </label>
+          </div>
+
+          <div id="signatureAutonomesSection" class="d-none">
+            <p class="fw-bold mb-2">Bon pour accord — Signature du responsable légal :</p>
+            <div class="signature-container">
+              <canvas id="signaturePadAutonomes" class="signature-pad"></canvas>
+              <div class="mt-3 d-flex gap-3 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearSignatureAutonomes">
+                  <i class="bi bi-eraser me-1"></i>Effacer
+                </button>
+              </div>
+              <div id="signatureAutonomesError" class="text-danger small mt-2 d-none">
+                <i class="bi bi-exclamation-circle me-1"></i>La signature est obligatoire si vous accordez cette autorisation.
+              </div>
+            </div>
+            <input type="hidden" id="signatureActivitesAutonomes" name="signatureActivitesAutonomes">
+          </div>
+        </div>
+      <% } %>
+
       <%# ---- PERMIS DE CONDUIRE (majeurs uniquement) ---- %>
       <% if (estMajeur) { %>
         <h5 class="text-success mb-3"><i class="bi bi-car-front me-2"></i>Permis de conduire</h5>
@@ -238,6 +276,8 @@
       droitImage:            document.getElementById('droitImage')?.checked            ? 'on' : '',
       autorisationTransport: document.getElementById('autorisationTransport')?.checked ? 'on' : '',
       autorisationHospitalisation: document.getElementById('autorisationHospitalisation')?.checked ? 'on' : '',
+      autorisationActivitesAutonomes: document.getElementById('autorisationActivitesAutonomes')?.checked ? 'on' : '',
+      signatureActivitesAutonomes: document.getElementById('signatureActivitesAutonomes')?.value || null,
       lieuInscription:       document.getElementById('lieuInscription').value,
       signatureDroitImage:   sig,
       signatureSanitaire:    sig,
@@ -263,12 +303,47 @@
       canvas.scrollIntoView({ behavior: 'smooth' });
       return;
     }
+    // Validation signature autonomes si coché
+    const autCb  = document.getElementById('autorisationActivitesAutonomes');
+    if (autCb?.checked && padAut?.isEmpty()) {
+      document.getElementById('signatureAutonomesError').classList.remove('d-none');
+      canvasAut.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (autCb?.checked && padAut && !padAut.isEmpty()) {
+      document.getElementById('signatureActivitesAutonomes').value = padAut.toDataURL();
+    }
     document.getElementById('signatureError').classList.add('d-none');
     await envoyer('soumettre');
   });
 
   // ---- Brouillon ----
   document.getElementById('brouillonBtn').addEventListener('click', () => envoyer('brouillon'));
+
+  // ---- Signature Pad Activités Autonomes ----
+  const canvasAut = document.getElementById('signaturePadAutonomes');
+  let padAut = null;
+  if (canvasAut) {
+    padAut = new SignaturePad(canvasAut, { penColor: '#000' });
+    function resizeCanvasAut() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const data  = padAut.toData();
+      canvasAut.width  = canvasAut.offsetWidth  * ratio;
+      canvasAut.height = canvasAut.offsetHeight * ratio;
+      canvasAut.getContext('2d').scale(ratio, ratio);
+      padAut.clear();
+      padAut.fromData(data);
+    }
+    window.addEventListener('resize', resizeCanvasAut);
+    setTimeout(resizeCanvasAut, 100);
+    document.getElementById('clearSignatureAutonomes').addEventListener('click', () => padAut.clear());
+  }
+
+  function toggleSignatureAutonomes(cb) {
+    const section = document.getElementById('signatureAutonomesSection');
+    section.classList.toggle('d-none', !cb.checked);
+    if (cb.checked) setTimeout(() => { if (padAut) { const r = Math.max(window.devicePixelRatio||1,1); canvasAut.width = canvasAut.offsetWidth*r; canvasAut.height = canvasAut.offsetHeight*r; canvasAut.getContext('2d').scale(r,r); padAut.clear(); } }, 50);
+  }
 
   async function envoyer(action) {
     const btn = action === 'brouillon'

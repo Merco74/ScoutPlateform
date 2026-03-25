@@ -587,14 +587,21 @@ app.post('/inscrire-enfant/:id', requireAuth, async (req, res) => {
       autorisationHospitalisation: !estMajeur
         ? req.body.autorisationHospitalisation === 'on'
         : undefined,
+      autorisationActivitesAutonomes: !estMajeur
+        ? req.body.autorisationActivitesAutonomes === 'on'
+        : undefined,
       luEtApprouveDroitImageText:  'Lu et approuvé',
       luEtApprouveInscriptionText: 'Lu et approuvé',
       signatureDroitImage:      req.body.signatureDroitImage || null,
       signatureDroitImageDate:  req.body.signatureDroitImage ? now : undefined,
       signatureInscription:     req.body.signatureDroitImage || null,
       signatureInscriptionDate: req.body.signatureDroitImage ? now : undefined,
-      signatureSanitaire:       req.body.signatureSanitaire  || null,
-      signatureSanitaireDate:   req.body.signatureSanitaire  ? now : undefined,
+      signatureSanitaire:             req.body.signatureSanitaire            || null,
+      signatureSanitaireDate:           req.body.signatureSanitaire            ? now : undefined,
+      signatureActivitesAutonomes:      req.body.signatureActivitesAutonomes   || null,
+      signatureActivitesAutonomesDate:  req.body.signatureActivitesAutonomes   ? now : undefined,
+      bonPourAccordActivitesAutonomesText: req.body.autorisationActivitesAutonomes === 'on'
+        ? 'Bon pour accord' : undefined,
       lieuInscription: sanitize(req.body.lieuInscription) || 'Cluses',
       cotisation: {
         montant: Number(req.body.montantCotisation) ||
@@ -856,7 +863,9 @@ function buildDataForPdf(parent, enfant, inscription) {
     droitImage:              inscription.droitImage,
     droitDiffusion:          inscription.droitDiffusion,
     autorisationTransport:   inscription.autorisationTransport,
-    autorisationHospitalisation: inscription.autorisationHospitalisation,
+    autorisationHospitalisation:     inscription.autorisationHospitalisation,
+    autorisationActivitesAutonomes:  inscription.autorisationActivitesAutonomes,
+    signatureActivitesAutonomes:     inscription.signatureActivitesAutonomes,
     permisConduire:          inscription.permisConduire,
     signatureDroitImage:     inscription.signatureDroitImage,
     signatureSanitaire:      inscription.signatureSanitaire,
@@ -911,6 +920,31 @@ async function generateAuthPdf(data, outputPath) {
     if (!data.estMajeur) {
       doc.text(`Hospitalisation : ${data.autorisationHospitalisation ? '✓ Autorisé' : '✗ Refusé'}`);
     }
+    if (!data.estMajeur && data.autorisationActivitesAutonomes) {
+      doc.fontSize(14).moveDown().text('ACTIVITÉS AUTONOMES', { underline: true });
+      doc.fontSize(11).text(
+        "Certaines activités occasionnelles en autonomie peuvent être organisées pour accompagner " +
+        "les jeunes vers une responsabilité progressive. Les modalités de ces activités sont fixées " +
+        "en mesurant leur capacité d'autonomie individuelle et collective. Les jeunes concernés " +
+        "participent à leur préparation avec l'équipe d'encadrement : repérage des lieux, mise à " +
+        "disposition de moyens adaptés et de moyens de communication (téléphones portables). " +
+        "L'équipe d'encadrement se tient à proximité pour intervenir en cas de besoin.",
+        { align: 'justify' }
+      );
+      doc.moveDown();
+      doc.fontSize(12).text('→ Autorisation activités autonomes : ✓ Accordée');
+      doc.moveDown(2);
+      // Signature activités autonomes
+      doc.fontSize(12).text('Bon pour accord :', { underline: false });
+      if (data.signatureActivitesAutonomes) {
+        try {
+          const imgData = data.signatureActivitesAutonomes.replace(/^data:image\/\w+;base64,/, '');
+          doc.image(Buffer.from(imgData, 'base64'), 70, doc.y + 5, { width: 180 });
+        } catch {}
+      }
+      doc.moveDown(4);
+    }
+
     if (data.estMajeur && data.permisConduire?.possede) {
       doc.fontSize(14).moveDown().text('PERMIS DE CONDUIRE', { underline: true });
       doc.fontSize(11)

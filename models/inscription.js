@@ -57,14 +57,19 @@ const inscriptionSchema = new mongoose.Schema({
   autorisationTransport:    { type: Boolean, default: false },
   // Autorisation hospitalisation (mineurs uniquement)
   autorisationHospitalisation: { type: Boolean, default: false },
+  // Autorisation activités autonomes (mineurs uniquement)
+  autorisationActivitesAutonomes: { type: Boolean, default: false },
 
   // === CONSENTEMENTS ===
-  luEtApprouveDroitImageText:  { type: String, enum: ['Lu et approuvé'] },
-  luEtApprouveInscriptionText: { type: String, enum: ['Lu et approuvé'] },
+  luEtApprouveDroitImageText:          { type: String, enum: ['Lu et approuvé'] },
+  luEtApprouveInscriptionText:         { type: String, enum: ['Lu et approuvé'] },
+  bonPourAccordActivitesAutonomesText: { type: String, enum: ['Bon pour accord'] },
 
   // === SIGNATURES ===
-  signatureDroitImage:      String,
-  signatureDroitImageDate:  Date,
+  signatureDroitImage:             String,
+  signatureDroitImageDate:         Date,
+  signatureActivitesAutonomes:     String,
+  signatureActivitesAutonomesDate: Date,
   signatureInscription:     String,
   signatureInscriptionDate: Date,
   signatureSanitaire:       String,
