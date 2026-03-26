@@ -9,8 +9,10 @@ const bcrypt         = require('bcrypt');
 const session        = require('express-session');
 const MongoStore     = require('connect-mongo');
 const PDFDocument    = require('pdfkit');
-const { v4: uuidv4 } = require('uuid');
-const moment         = require('moment');
+const { v4: uuidv4 }  = require('uuid');
+const moment          = require('moment');
+const cloudinary      = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 
@@ -20,11 +22,11 @@ const app = express();
 const PORT           = process.env.PORT || 3000;
 const MONGODB_URI    = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/scouts_cluses';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'scouts-cluses-secret-dev';
-const UPLOAD_DIR     = path.join(__dirname, 'uploads');
-const PDF_DIR        = path.join(__dirname, 'public', 'pdfs');
-
-[UPLOAD_DIR, PDF_DIR].forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+// Configuration Cloudinary (variables d'environnement)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // ============================================================
@@ -45,7 +47,6 @@ const Config      = require('./models/config');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOAD_DIR));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -66,14 +67,27 @@ app.use((req, res, next) => {
 });
 
 // ============================================================
-// MULTER
+// MULTER + CLOUDINARY
 // ============================================================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename:    (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname)}`)
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: (req, file) => {
+    const isPdf = file.mimetype === 'application/pdf';
+    return {
+      folder:          'scoutplateform/uploads',
+      // Les images (jpg/png) sont converties en PDF par Cloudinary
+      // Les PDFs sont stockés directement sans transformation
+      resource_type:   isPdf ? 'raw' : 'image',
+      format:          'pdf',
+      public_id:       uuidv4(),
+      // Transformation Cloudinary : convertit l'image en PDF A4
+      transformation:  isPdf ? undefined : [{ flags: 'attachment' }]
+    };
+  }
 });
+
 const upload = multer({
-  storage,
+  storage: cloudinaryStorage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const okExt  = /\.(pdf|jpeg|jpg|png)$/i;
@@ -186,9 +200,9 @@ app.post('/inscription',
         encadrant: demandeEncadrant === 'on' ? {
           categories: req.body.categoriesEncadrant
             ? [].concat(req.body.categoriesEncadrant) : [],
-          bafaScan:         files.bafaScan?.[0]?.filename,
-          casierJudiciaire: files.casierJudiciaire?.[0]?.filename,
-          autresDocuments:  files.autresDocuments?.map(f => f.filename) || [],
+          bafaScan:         files.bafaScan?.[0]?.path,
+          casierJudiciaire: files.casierJudiciaire?.[0]?.path,
+          autresDocuments:  files.autresDocuments?.map(f => f.path) || [],
           statut: 'en_attente'
         } : undefined
       });
@@ -391,9 +405,9 @@ app.post('/ajouter-enfant',
         problemeSante:         req.body.problemeSante         === 'on',
         problemeSanteDetails:  sanitize(req.body.problemeSanteDetails),
         recommandationsParents: sanitize(req.body.recommandationsParents),
-        vaccinScan:      files.vaccinScan?.[0]?.filename,
-        medicationScan:  files.medicationScan?.[0]?.filename,
-        otherDocuments:  files.otherDocuments?.map(f => f.filename) || []
+        vaccinScan:      files.vaccinScan?.[0]?.path,
+        medicationScan:  files.medicationScan?.[0]?.path,
+        otherDocuments:  files.otherDocuments?.map(f => f.path) || []
       });
 
       res.redirect(`/inscrire-enfant/${enfant._id}`);
@@ -456,9 +470,9 @@ app.post('/modifier-enfant/:id',
         problemeSanteDetails:  sanitize(req.body.problemeSanteDetails),
         recommandationsParents: sanitize(req.body.recommandationsParents)
       });
-      if (files.vaccinScan?.[0])        enfant.vaccinScan     = files.vaccinScan[0].filename;
-      if (files.medicationScan?.[0])    enfant.medicationScan = files.medicationScan[0].filename;
-      if (files.otherDocuments?.length) enfant.otherDocuments = files.otherDocuments.map(f => f.filename);
+      if (files.vaccinScan?.[0])        enfant.vaccinScan     = files.vaccinScan[0].path;
+      if (files.medicationScan?.[0])    enfant.medicationScan = files.medicationScan[0].path;
+      if (files.otherDocuments?.length) enfant.otherDocuments = files.otherDocuments.map(f => f.path);
       await enfant.save();
       res.redirect('/espace-parent');
     } catch (err) {
@@ -616,14 +630,14 @@ app.post('/inscrire-enfant/:id', requireAuth, async (req, res) => {
 
     // Génération PDF uniquement si soumise (pas brouillon)
     if (!estBrouillon) {
-      const pdfId           = uuidv4();
-      const authPdfPath     = path.join(PDF_DIR, `${pdfId}-auth.pdf`);
-      const sanitaryPdfPath = path.join(PDF_DIR, `${pdfId}-sanitary.pdf`);
-      const data            = buildDataForPdf(parent, enfant, inscription);
-      await generateAuthPdf(data, authPdfPath);
-      await generateSanitaryPdf(data, sanitaryPdfPath);
-      inscription.pdfPath         = `/pdfs/${path.basename(authPdfPath)}`;
-      inscription.sanitaryPdfPath = `/pdfs/${path.basename(sanitaryPdfPath)}`;
+      const data             = buildDataForPdf(parent, enfant, inscription);
+      const pdfId            = uuidv4();
+      const [authUrl, sanitaryUrl] = await Promise.all([
+        generateAuthPdf(data, `scoutplateform/pdfs/${pdfId}-auth`),
+        generateSanitaryPdf(data, `scoutplateform/pdfs/${pdfId}-sanitary`)
+      ]);
+      inscription.pdfPath         = authUrl;
+      inscription.sanitaryPdfPath = sanitaryUrl;
       await inscription.save();
     }
 
@@ -887,11 +901,11 @@ function buildDataForPdf(parent, enfant, inscription) {
 // ============================================================
 // GÉNÉRATION PDF
 // ============================================================
-async function generateAuthPdf(data, outputPath) {
+async function generateAuthPdf(data, publicId) {
   return new Promise((resolve, reject) => {
     const doc    = new PDFDocument({ margin: 50, size: 'A4' });
-    const stream = fs.createWriteStream(outputPath);
-    doc.pipe(stream);
+    const chunks = [];
+    doc.on('data', chunk => chunks.push(chunk));
     const logoPath = path.join(__dirname, 'public', 'images', 'logo-scouts.png');
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 30, { width: 60 });
@@ -963,16 +977,29 @@ async function generateAuthPdf(data, outputPath) {
       .text(`Fait à : ${data.lieuInscription}`, 70, sigY)
       .text(`Le : ${moment(data.dateInscription).format('DD/MM/YYYY')}`, 70, sigY + 15);
     doc.end();
-    stream.on('finish', resolve);
-    stream.on('error', reject);
+    doc.on('end', async () => {
+      try {
+        const buffer = Buffer.concat(chunks);
+        const result = await new Promise((res, rej) => {
+          cloudinary.uploader.upload_stream(
+            { resource_type: 'raw', public_id: publicId, format: 'pdf', folder: '' },
+            (err, r) => err ? rej(err) : res(r)
+          )(buffer);
+        });
+        resolve(result.secure_url);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    doc.on('error', reject);
   });
 }
 
-async function generateSanitaryPdf(data, outputPath) {
+async function generateSanitaryPdf(data, publicId) {
   return new Promise((resolve, reject) => {
     const doc    = new PDFDocument({ margin: 50, size: 'A4' });
-    const stream = fs.createWriteStream(outputPath);
-    doc.pipe(stream);
+    const chunks = [];
+    doc.on('data', chunk => chunks.push(chunk));
     doc.fontSize(18).text('FICHE SANITAIRE DE LIAISON', 0, 80, { align: 'center' });
     doc.fontSize(12).text(`${data.anneeScoute} — ${data.typeInscription === 'camp' ? 'Camp' : 'Année'}`, { align: 'center' }).moveDown(2);
     doc.fontSize(14).text('ENFANT', { underline: true });
@@ -1012,8 +1039,21 @@ async function generateSanitaryPdf(data, outputPath) {
       .text(`Fait à : ${data.lieuInscription}`, 70, sigY)
       .text(`Le : ${moment(data.dateInscription).format('DD/MM/YYYY')}`, 70, sigY + 15);
     doc.end();
-    stream.on('finish', resolve);
-    stream.on('error', reject);
+    doc.on('end', async () => {
+      try {
+        const buffer = Buffer.concat(chunks);
+        const result = await new Promise((res, rej) => {
+          cloudinary.uploader.upload_stream(
+            { resource_type: 'raw', public_id: publicId, format: 'pdf', folder: '' },
+            (err, r) => err ? rej(err) : res(r)
+          )(buffer);
+        });
+        resolve(result.secure_url);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    doc.on('error', reject);
   });
 }
 
