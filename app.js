@@ -125,8 +125,10 @@ const getCategorieParAge = (age, sexe) => {
 };
 
 /** Valide un numéro de téléphone FR (06/07) ou Suisse (+41) */
-const telValide = (tel) =>
-  /^(0[6-7]d{8}|0[1-9]d{8}|+41d{9})$/.test((tel || '').replace(/s/g, ''));
+const telValide = (tel) =>{
+  return /^(0[6-7]\d{8}|0[1-9]\d{8}|\+41\d{9})$/
+    .test((tel || '').replace(/\s/g, ''))
+}
 
 /** Récupère ou initialise la config globale */
 async function getConfig() {
