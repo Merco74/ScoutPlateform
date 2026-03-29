@@ -67,14 +67,14 @@ body {
   font-weight: 700; font-size: 1.3rem; flex-shrink: 0;
 }
 
-.form-floating mb-3 { position: relative; margin-bottom: 25px; }
+.form-floating-custom { position: relative; margin-bottom: 25px; }
 .form-control, .form-select { border: 2px solid var(--border); border-radius: 12px; padding: 15px 20px; font-size: 1.1rem; background: #fafbfc; }
 .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 0.2rem rgba(46,125,50,0.15); background: white; }
-.form-floating mb-3 label { position: absolute; top: 15px; left: 20px; color: #6c757d; transition: all 0.3s ease; font-weight: 500; pointer-events: none; }
-.form-floating mb-3 input:focus + label,
-.form-floating mb-3 input:not(:placeholder-shown) + label,
-.form-floating mb-3 select:focus + label,
-.form-floating mb-3 select:not([value=""]) + label {
+.form-floating-custom label { position: absolute; top: 15px; left: 20px; color: #6c757d; transition: all 0.3s ease; font-weight: 500; pointer-events: none; }
+.form-floating-custom input:focus + label,
+.form-floating-custom input:not(:placeholder-shown) + label,
+.form-floating-custom select:focus + label,
+.form-floating-custom select:not([value=""]) + label {
   top: -10px; left: 15px; font-size: 0.85rem; color: var(--primary); background: white; padding: 0 8px; border-radius: 6px;
 }
 

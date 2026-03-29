@@ -20,19 +20,19 @@
           <h5 class="text-success mt-2 mb-3"><i class="bi bi-person me-2"></i>Votre identité</h5>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="nom" name="nom" placeholder="Nom" required>
                 <label for="nom">Nom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénom" required>
                 <label for="prenom">Prénom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
                        placeholder="06..." pattern="^0[6-7]\d{8}$" required
                        oninput="validerTel(this)">
@@ -41,7 +41,7 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telDomicile" name="telDomicile" placeholder="Tél. domicile">
                 <label for="telDomicile">Tél. domicile</label>
               </div>
@@ -51,19 +51,19 @@
           <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="adresse" name="adresse" placeholder="Adresse" required>
                 <label for="adresse">Adresse *</label>
               </div>
             </div>
             <div class="col-md-8">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="ville" name="ville" placeholder="Ville" required>
                 <label for="ville">Ville *</label>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="codePostal" name="codePostal"
                        placeholder="Code postal" pattern="^\d{5}$" required
                        oninput="validerCP(this)">
@@ -76,7 +76,7 @@
           <h5 class="text-success mb-3"><i class="bi bi-hospital me-2"></i>Médecin traitant</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant" placeholder="Dr...">
                 <label for="medecinTraitant">Nom du médecin traitant (facultatif)</label>
               </div>
@@ -93,25 +93,25 @@
             <h5 class="text-success mb-3"><i class="bi bi-people me-2"></i>Second responsable</h5>
             <div class="row g-3">
               <div class="col-md-6">
-                <div class="form-floating mb-3">
+                <div class="form-floating-custom">
                   <input type="text" class="form-control" id="resp2Nom" name="resp2Nom" placeholder="Nom">
                   <label for="resp2Nom">Nom</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
+                <div class="form-floating-custom">
                   <input type="text" class="form-control" id="resp2Prenom" name="resp2Prenom" placeholder="Prénom">
                   <label for="resp2Prenom">Prénom</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
+                <div class="form-floating-custom">
                   <input type="tel" class="form-control" id="resp2TelPortable" name="resp2TelPortable" placeholder="06...">
                   <label for="resp2TelPortable">Tél. portable</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
+                <div class="form-floating-custom">
                   <input type="tel" class="form-control" id="resp2TelTravail" name="resp2TelTravail" placeholder="Tél. travail">
                   <label for="resp2TelTravail">Tél. travail</label>
                 </div>
@@ -122,7 +122,7 @@
           <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Identifiants de connexion</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="email" class="form-control" id="email" name="email"
                        placeholder="Email" required autocomplete="email"
                        oninput="validerEmail(this)">
@@ -131,7 +131,7 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="password" class="form-control" id="motDePasse" name="motDePasse"
                        placeholder="Mot de passe" required minlength="8" autocomplete="new-password"
                        oninput="validerMDP(this)">
@@ -140,7 +140,7 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="password" class="form-control" id="motDePasseConfirm" name="motDePasseConfirm"
                        placeholder="Confirmation" required autocomplete="new-password"
                        oninput="validerConfirm(this)">
@@ -151,7 +151,7 @@
           </div>
 
           <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="acceptRGPD" required placeholder="..." >
+            <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
             <label class="form-check-label" for="acceptRGPD">
               J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a> *
             </label>
@@ -160,15 +160,7 @@
           <button type="submit" class="btn btn-primary-custom btn-custom w-100">
             <i class="bi bi-check-circle me-2"></i>Créer mon compte
           </button>
-        
-<h5 style="margin-top:20px;">Diplôme de secourisme</h5>
-<div class="mb-3">
-<label>Déposer vos documents (PSC1, PSE1, etc.)</label>
-<input type="file" name="diplomesSecourisme" multiple accept=".pdf,.jpg,.jpeg,.png">
-<small>Vous pouvez sélectionner plusieurs fichiers</small>
-</div>
-
-</form>
+        </form>
 
         <hr class="my-4">
         <p class="text-center text-muted mb-0">

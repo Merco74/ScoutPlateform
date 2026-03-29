@@ -21,29 +21,29 @@
           <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité</h5>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="nom" name="nom" value="<%= parent.nom % placeholder="..." >" required>
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="nom" name="nom" value="<%= parent.nom %>" required>
                 <label for="nom">Nom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="prenom" name="prenom" value="<%= parent.prenom % placeholder="..." >" required>
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="prenom" name="prenom" value="<%= parent.prenom %>" required>
                 <label for="prenom">Prénom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
-                       value="<%= parent.telPortable % placeholder="..." >" pattern="^0[6-7]\d{8}$" required
+                       value="<%= parent.telPortable %>" pattern="^0[6-7]\d{8}$" required
                        oninput="validerTel(this)">
                 <label for="telPortable">Tél. portable *</label>
                 <div class="invalid-feedback">Format : 06XXXXXXXX</div>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
-                <input type="tel" class="form-control" id="telDomicile" name="telDomicile" value="<%= parent.telDomicile || '' % placeholder="..." >">
+              <div class="form-floating-custom">
+                <input type="tel" class="form-control" id="telDomicile" name="telDomicile" value="<%= parent.telDomicile || '' %>">
                 <label for="telDomicile">Tél. domicile</label>
               </div>
             </div>
@@ -52,21 +52,21 @@
           <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="adresse" name="adresse" value="<%= parent.adresse % placeholder="..." >" required>
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="adresse" name="adresse" value="<%= parent.adresse %>" required>
                 <label for="adresse">Adresse *</label>
               </div>
             </div>
             <div class="col-md-8">
-              <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="ville" name="ville" value="<%= parent.ville % placeholder="..." >" required>
+              <div class="form-floating-custom">
+                <input type="text" class="form-control" id="ville" name="ville" value="<%= parent.ville %>" required>
                 <label for="ville">Ville *</label>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="codePostal" name="codePostal"
-                       value="<%= parent.codePostal % placeholder="..." >" pattern="^\d{5}$" required
+                       value="<%= parent.codePostal %>" pattern="^\d{5}$" required
                        oninput="validerCP(this)">
                 <label for="codePostal">Code postal *</label>
                 <div class="invalid-feedback">5 chiffres</div>
@@ -77,9 +77,9 @@
           <h5 class="text-success mb-3"><i class="bi bi-hospital me-2"></i>Médecin traitant</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant"
-                       value="<%= parent.medecinTraitant || '' % placeholder="..." >">
+                       value="<%= parent.medecinTraitant || '' %>">
                 <label for="medecinTraitant">Nom du médecin traitant</label>
               </div>
             </div>
@@ -96,26 +96,26 @@
             <h5 class="text-success mb-3"><i class="bi bi-people me-2"></i>Second responsable</h5>
             <div class="row g-3">
               <div class="col-md-6">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" name="resp2Nom" value="<%= parent.responsable2?.nom || '' % placeholder="..." >">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" name="resp2Nom" value="<%= parent.responsable2?.nom || '' %>">
                   <label>Nom</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" name="resp2Prenom" value="<%= parent.responsable2?.prenom || '' % placeholder="..." >">
+                <div class="form-floating-custom">
+                  <input type="text" class="form-control" name="resp2Prenom" value="<%= parent.responsable2?.prenom || '' %>">
                   <label>Prénom</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
-                  <input type="tel" class="form-control" name="resp2TelPortable" value="<%= parent.responsable2?.telPortable || '' % placeholder="..." >">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" name="resp2TelPortable" value="<%= parent.responsable2?.telPortable || '' %>">
                   <label>Tél. portable</label>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating mb-3">
-                  <input type="tel" class="form-control" name="resp2TelTravail" value="<%= parent.responsable2?.telTravail || '' % placeholder="..." >">
+                <div class="form-floating-custom">
+                  <input type="tel" class="form-control" name="resp2TelTravail" value="<%= parent.responsable2?.telTravail || '' %>">
                   <label>Tél. travail</label>
                 </div>
               </div>
@@ -125,7 +125,7 @@
           <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Changer le mot de passe <small class="text-muted fw-normal">(facultatif)</small></h5>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="password" class="form-control" id="nouveauMotDePasse" name="nouveauMotDePasse"
                        placeholder="Nouveau mot de passe" minlength="8" autocomplete="new-password"
                        oninput="validerMDP(this)">
@@ -134,7 +134,7 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating mb-3">
+              <div class="form-floating-custom">
                 <input type="password" class="form-control" id="confirmMotDePasse" name="confirmMotDePasse"
                        placeholder="Confirmer" autocomplete="new-password"
                        oninput="validerConfirm(this)">
@@ -150,15 +150,7 @@
             </button>
             <a href="/espace-parent" class="btn btn-outline-secondary btn-custom">Retour</a>
           </div>
-        
-<h5 style="margin-top:20px;">Diplôme de secourisme</h5>
-<div class="mb-3">
-<label>Déposer vos documents (PSC1, PSE1, etc.)</label>
-<input type="file" name="diplomesSecourisme" multiple accept=".pdf,.jpg,.jpeg,.png">
-<small>Vous pouvez sélectionner plusieurs fichiers</small>
-</div>
-
-</form>
+        </form>
       </div>
     </div>
   </div>
