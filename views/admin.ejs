@@ -91,29 +91,29 @@
           <h5 class="text-success mb-3"><i class="bi bi-calendar me-2"></i>Inscription Année</h5>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="inscriptionOuverte" name="inscriptionOuverte"
-                   <%= config.inscriptionOuverte ? 'checked' : '' %>>
+                   <%= config.inscriptionOuverte ? 'checked' : '' % placeholder="..." >>
             <label class="form-check-label fw-bold" for="inscriptionOuverte">Inscriptions ouvertes</label>
           </div>
-          <div class="form-floating-custom mb-3">
+          <div class="form-floating mb-3 mb-3">
             <input type="text" class="form-control" id="inscriptionAnneeActive" name="inscriptionAnneeActive"
-                   value="<%= config.inscriptionAnneeActive || '' %>" placeholder="ex: 2025-2026">
+                   value="<%= config.inscriptionAnneeActive || '' % placeholder="..." >" placeholder="ex: 2025-2026">
             <label>Année active (ex: 2025-2026)</label>
           </div>
           <div class="row g-2">
             <div class="col-6">
               <label class="form-label small">Ouverture</label>
               <input type="date" class="form-control" name="inscriptionDebutDate"
-                     value="<%= config.inscriptionDebutDate ? new Date(config.inscriptionDebutDate).toISOString().split('T')[0] : '' %>">
+                     value="<%= config.inscriptionDebutDate ? new Date(config.inscriptionDebutDate).toISOString().split('T')[0] : '' % placeholder="..." >">
             </div>
             <div class="col-6">
               <label class="form-label small">Fermeture</label>
               <input type="date" class="form-control" name="inscriptionFinDate"
-                     value="<%= config.inscriptionFinDate ? new Date(config.inscriptionFinDate).toISOString().split('T')[0] : '' %>">
+                     value="<%= config.inscriptionFinDate ? new Date(config.inscriptionFinDate).toISOString().split('T')[0] : '' % placeholder="..." >">
             </div>
           </div>
-          <div class="form-floating-custom mt-3">
+          <div class="form-floating mb-3 mt-3">
             <input type="number" class="form-control" name="cotisationAnnee"
-                   value="<%= config.cotisationAnnee || 20 %>" min="0" step="0.01">
+                   value="<%= config.cotisationAnnee || 20 % placeholder="..." >" min="0" step="0.01">
             <label>Cotisation année (€)</label>
           </div>
         </div>
@@ -121,29 +121,29 @@
           <h5 class="text-success mb-3"><i class="bi bi-tent me-2"></i>Inscription Camp</h5>
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="campOuvert" name="campOuvert"
-                   <%= config.campOuvert ? 'checked' : '' %>>
+                   <%= config.campOuvert ? 'checked' : '' % placeholder="..." >>
             <label class="form-check-label fw-bold" for="campOuvert">Inscriptions camp ouvertes</label>
           </div>
-          <div class="form-floating-custom mb-3">
+          <div class="form-floating mb-3 mb-3">
             <input type="text" class="form-control" name="campNom"
-                   value="<%= config.campNom || '' %>" placeholder="ex: Camp été 2026">
+                   value="<%= config.campNom || '' % placeholder="..." >" placeholder="ex: Camp été 2026">
             <label>Nom du camp</label>
           </div>
           <div class="row g-2">
             <div class="col-6">
               <label class="form-label small">Ouverture</label>
               <input type="date" class="form-control" name="campDebutDate"
-                     value="<%= config.campDebutDate ? new Date(config.campDebutDate).toISOString().split('T')[0] : '' %>">
+                     value="<%= config.campDebutDate ? new Date(config.campDebutDate).toISOString().split('T')[0] : '' % placeholder="..." >">
             </div>
             <div class="col-6">
               <label class="form-label small">Fermeture</label>
               <input type="date" class="form-control" name="campFinDate"
-                     value="<%= config.campFinDate ? new Date(config.campFinDate).toISOString().split('T')[0] : '' %>">
+                     value="<%= config.campFinDate ? new Date(config.campFinDate).toISOString().split('T')[0] : '' % placeholder="..." >">
             </div>
           </div>
-          <div class="form-floating-custom mt-3">
+          <div class="form-floating mb-3 mt-3">
             <input type="number" class="form-control" name="cotisationCamp"
-                   value="<%= config.cotisationCamp || 50 %>" min="0" step="0.01">
+                   value="<%= config.cotisationCamp || 50 % placeholder="..." >" min="0" step="0.01">
             <label>Cotisation camp (€)</label>
           </div>
         </div>
@@ -152,7 +152,15 @@
         <i class="bi bi-check-circle me-2"></i>Enregistrer la configuration
       </button>
       <div id="configMsg" class="mt-3 d-none"></div>
-    </form>
+    
+<h5 style="margin-top:20px;">Diplôme de secourisme</h5>
+<div class="mb-3">
+<label>Déposer vos documents (PSC1, PSE1, etc.)</label>
+<input type="file" name="diplomesSecourisme" multiple accept=".pdf,.jpg,.jpeg,.png">
+<small>Vous pouvez sélectionner plusieurs fichiers</small>
+</div>
+
+</form>
   </div>
 
   <%# ---- ENCADRANTS ---- %>

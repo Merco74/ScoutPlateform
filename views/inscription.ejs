@@ -20,28 +20,28 @@
           <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité</h5>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <div class="form-floating-custom">
-                <input type="text" class="form-control" id="nom" name="nom" required>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="nom" name="nom" required placeholder="..." >
                 <label for="nom">Nom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating-custom">
-                <input type="text" class="form-control" id="prenom" name="prenom" required>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="prenom" name="prenom" required placeholder="..." >
                 <label for="prenom">Prénom *</label>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating-custom">
+              <div class="form-floating mb-3">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
-                       pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)">
+                       pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)" placeholder="..." >
                 <label for="telPortable">Tél. portable (06/07) *</label>
                 <div class="invalid-feedback">Format : 06XXXXXXXX</div>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating-custom">
-                <input type="tel" class="form-control" id="telDomicile" name="telDomicile">
+              <div class="form-floating mb-3">
+                <input type="tel" class="form-control" id="telDomicile" name="telDomicile" placeholder="..." >
                 <label for="telDomicile">Tél. domicile</label>
               </div>
             </div>
@@ -50,21 +50,21 @@
           <h5 class="text-success mb-3"><i class="bi bi-geo-alt me-2"></i>Adresse</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating-custom">
-                <input type="text" class="form-control" id="adresse" name="adresse">
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="adresse" name="adresse" placeholder="..." >
                 <label for="adresse">Adresse</label>
               </div>
             </div>
             <div class="col-md-8">
-              <div class="form-floating-custom">
-                <input type="text" class="form-control" id="ville" name="ville">
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="ville" name="ville" placeholder="..." >
                 <label for="ville">Ville</label>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="form-floating-custom">
+              <div class="form-floating mb-3">
                 <input type="text" class="form-control" id="codePostal" name="codePostal"
-                       pattern="^\d{5}$" oninput="validerCP(this)">
+                       pattern="^\d{5}$" oninput="validerCP(this)" placeholder="..." >
                 <label for="codePostal">Code postal</label>
                 <div class="invalid-feedback">5 chiffres</div>
               </div>
@@ -74,25 +74,25 @@
           <h5 class="text-success mb-3"><i class="bi bi-lock me-2"></i>Identifiants</h5>
           <div class="row g-3 mb-4">
             <div class="col-12">
-              <div class="form-floating-custom">
+              <div class="form-floating mb-3">
                 <input type="email" class="form-control" id="email" name="email"
-                       required autocomplete="email" oninput="validerEmail(this)">
+                       required autocomplete="email" oninput="validerEmail(this)" placeholder="..." >
                 <label for="email">Email *</label>
                 <div class="invalid-feedback">Email invalide</div>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating-custom">
+              <div class="form-floating mb-3">
                 <input type="password" class="form-control" id="motDePasse" name="motDePasse"
-                       required minlength="8" autocomplete="new-password" oninput="validerMDP(this)">
+                       required minlength="8" autocomplete="new-password" oninput="validerMDP(this)" placeholder="..." >
                 <label for="motDePasse">Mot de passe * (8 car. min.)</label>
                 <div class="invalid-feedback">8 caractères minimum</div>
               </div>
             </div>
             <div class="col-md-6">
-              <div class="form-floating-custom">
+              <div class="form-floating mb-3">
                 <input type="password" class="form-control" id="motDePasseConfirm" name="motDePasseConfirm"
-                       required autocomplete="new-password" oninput="validerConfirm(this)">
+                       required autocomplete="new-password" oninput="validerConfirm(this)" placeholder="..." >
                 <label for="motDePasseConfirm">Confirmer *</label>
                 <div class="invalid-feedback">Les mots de passe ne correspondent pas</div>
               </div>
@@ -103,7 +103,7 @@
           <div class="p-4 rounded-3 mb-4" style="background:#f0faf0; border:2px solid var(--border);">
             <div class="form-check form-switch mb-3">
               <input class="form-check-input" type="checkbox" id="demandeEncadrant" name="demandeEncadrant"
-                     onchange="toggleEncadrant(this)">
+                     onchange="toggleEncadrant(this)" placeholder="..." >
               <label class="form-check-label fw-bold fs-5" for="demandeEncadrant">
                 <i class="bi bi-shield-check me-2 text-success"></i>Je suis également encadrant
               </label>
@@ -117,15 +117,15 @@
               <h6 class="text-success mb-3">Catégorie(s) encadrée(s)</h6>
               <div class="d-flex gap-3 flex-wrap mb-4">
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="louveteau" id="catLouveteau">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="louveteau" id="catLouveteau" placeholder="..." >
                   <label class="form-check-label" for="catLouveteau">Louveteaux/Louvettes (8-11 ans)</label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="scout" id="catScout">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="scout" id="catScout" placeholder="..." >
                   <label class="form-check-label" for="catScout">Scouts (11-17 ans, Masculin)</label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="guide" id="catGuide">
+                  <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="guide" id="catGuide" placeholder="..." >
                   <label class="form-check-label" for="catGuide">Guides (11-17 ans, Féminin)</label>
                 </div>
               </div>
@@ -136,21 +136,21 @@
               </p>
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <div class="form-floating-custom">
+                  <div class="form-floating mb-3">
                     <input type="text" class="form-control" name="diplomeIntitule" placeholder="Ex: Licence STAPS, BAFA, Professeur des écoles...">
                     <label>Intitulé du diplôme / équivalence</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Scan du diplôme <small class="text-muted fw-normal">(PDF, JPG ou PNG)</small></label>
-                  <input type="file" class="form-control" name="diplomeScan" accept="application/pdf,image/*">
+                  <input type="file" class="form-control" name="diplomeScan" accept="application/pdf,image/*" placeholder="..." >
                 </div>
               </div>
 
               <h6 class="text-success mb-3">Secourisme</h6>
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <div class="form-floating-custom">
+                  <div class="form-floating mb-3">
                     <select class="form-select" name="secourismeType" id="secourismeType" onchange="toggleSecourismeAutre(this)">
                       <option value="">Aucun</option>
                       <option value="psc1">PSC1 (Prévention et Secours Civiques)</option>
@@ -162,7 +162,7 @@
                   </div>
                 </div>
                 <div class="col-md-6" id="secourismeAutreDiv" style="display:none">
-                  <div class="form-floating-custom">
+                  <div class="form-floating mb-3">
                     <input type="text" class="form-control" name="secourismeAutre" placeholder="Précisez...">
                     <label>Précisez le diplôme</label>
                   </div>
@@ -174,7 +174,7 @@
                 <div class="col-12">
                   <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="permisConduire" name="permisConduire"
-                           onchange="togglePermisEnc(this)">
+                           onchange="togglePermisEnc(this)" placeholder="..." >
                     <label class="form-check-label" for="permisConduire">Je possède un permis de conduire</label>
                   </div>
                   <div id="permisEncDiv" class="d-none">
@@ -184,14 +184,14 @@
                         <div class="d-flex gap-3 flex-wrap">
                           <% ['B','BE','D','DE'].forEach(cat => { %>
                             <div class="form-check">
-                              <input class="form-check-input" type="checkbox" name="permisCategories" value="<%= cat %>" id="permisEnc<%= cat %>">
+                              <input class="form-check-input" type="checkbox" name="permisCategories" value="<%= cat % placeholder="..." >" id="permisEnc<%= cat %>">
                               <label class="form-check-label" for="permisEnc<%= cat %>"><%= cat %></label>
                             </div>
                           <% }) %>
                         </div>
                       </div>
                       <div class="col-md-6">
-                        <div class="form-floating-custom">
+                        <div class="form-floating mb-3">
                           <input type="text" class="form-control" name="permisNumero" placeholder="N° de permis">
                           <label>Numéro de permis</label>
                         </div>
@@ -211,7 +211,7 @@
           </div>
 
           <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
+            <input class="form-check-input" type="checkbox" id="acceptRGPD" required placeholder="..." >
             <label class="form-check-label" for="acceptRGPD">
               J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a> *
             </label>
@@ -220,7 +220,15 @@
           <button type="submit" class="btn btn-primary-custom btn-custom w-100">
             <i class="bi bi-check-circle me-2"></i>Créer mon compte
           </button>
-        </form>
+        
+<h5 style="margin-top:20px;">Diplôme de secourisme</h5>
+<div class="mb-3">
+<label>Déposer vos documents (PSC1, PSE1, etc.)</label>
+<input type="file" name="diplomesSecourisme" multiple accept=".pdf,.jpg,.jpeg,.png">
+<small>Vous pouvez sélectionner plusieurs fichiers</small>
+</div>
+
+</form>
 
         <hr class="my-4">
         <p class="text-center text-muted mb-0">

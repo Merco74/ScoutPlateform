@@ -55,23 +55,23 @@
     </div>
 
     <form id="inscriptionForm" novalidate>
-      <input type="hidden" name="typeInscription" value="<%= typeInscription %>">
-      <input type="hidden" name="anneeScoute"     value="<%= anneeScoute %>">
+      <input type="hidden" name="typeInscription" value="<%= typeInscription % placeholder="..." >">
+      <input type="hidden" name="anneeScoute"     value="<%= anneeScoute % placeholder="..." >">
 
       <%# ---- AUTORISATIONS ---- %>
       <h5 class="text-success mb-3"><i class="bi bi-check2-square me-2"></i>Autorisations</h5>
       <div class="p-4 bg-light rounded-3 mb-4">
         <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="droitImage" name="droitImage" checked>
+          <input class="form-check-input" type="checkbox" id="droitImage" name="droitImage" checked placeholder="..." >
           <label class="form-check-label" for="droitImage">J'autorise le droit à l'image et la diffusion</label>
         </div>
         <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="autorisationTransport" name="autorisationTransport" checked>
+          <input class="form-check-input" type="checkbox" id="autorisationTransport" name="autorisationTransport" checked placeholder="..." >
           <label class="form-check-label" for="autorisationTransport">J'autorise le transport en véhicule bénévole</label>
         </div>
         <% if (!estMajeur) { %>
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="autorisationHospitalisation" name="autorisationHospitalisation" checked>
+            <input class="form-check-input" type="checkbox" id="autorisationHospitalisation" name="autorisationHospitalisation" checked placeholder="..." >
             <label class="form-check-label" for="autorisationHospitalisation">
               J'autorise le personnel encadrant à prendre toute mesure d'urgence médicale ou d'hospitalisation si nécessaire
             </label>
@@ -93,7 +93,7 @@
           </p>
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="autorisationActivitesAutonomes"
-                   name="autorisationActivitesAutonomes" onchange="toggleSignatureAutonomes(this)">
+                   name="autorisationActivitesAutonomes" onchange="toggleSignatureAutonomes(this)" placeholder="..." >
             <label class="form-check-label fw-bold" for="autorisationActivitesAutonomes">
               J'autorise mon enfant à participer aux activités autonomes dans les conditions décrites ci-dessus
             </label>
@@ -112,7 +112,7 @@
                 <i class="bi bi-exclamation-circle me-1"></i>La signature est obligatoire si vous accordez cette autorisation.
               </div>
             </div>
-            <input type="hidden" id="signatureActivitesAutonomes" name="signatureActivitesAutonomes">
+            <input type="hidden" id="signatureActivitesAutonomes" name="signatureActivitesAutonomes" placeholder="..." >
           </div>
         </div>
       <% } %>
@@ -123,7 +123,7 @@
         <div class="p-4 bg-light rounded-3 mb-4">
           <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" id="permisConduire" name="permisConduire"
-                   onchange="togglePermis(this)">
+                   onchange="togglePermis(this)" placeholder="..." >
             <label class="form-check-label fw-bold" for="permisConduire">Je possède un permis de conduire</label>
           </div>
           <div id="permisDetails" class="d-none">
@@ -133,14 +133,14 @@
                 <div class="d-flex gap-3 flex-wrap">
                   <% ['B', 'BE', 'D', 'DE'].forEach(cat => { %>
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="permisCategories" value="<%= cat %>" id="permis<%= cat %>">
+                      <input class="form-check-input" type="checkbox" name="permisCategories" value="<%= cat % placeholder="..." >" id="permis<%= cat %>">
                       <label class="form-check-label" for="permis<%= cat %>"><%= cat %></label>
                     </div>
                   <% }) %>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="form-floating-custom">
+                <div class="form-floating mb-3">
                   <input type="text" class="form-control" id="permisNumero" name="permisNumero" placeholder="N°">
                   <label for="permisNumero">Numéro de permis</label>
                 </div>
@@ -153,8 +153,8 @@
       <%# ---- LIEU ---- %>
       <div class="row g-3 mb-4">
         <div class="col-md-6">
-          <div class="form-floating-custom">
-            <input type="text" class="form-control" id="lieuInscription" name="lieuInscription" value="Cluses">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="lieuInscription" name="lieuInscription" value="Cluses" placeholder="..." >
             <label for="lieuInscription">Lieu de signature</label>
           </div>
         </div>
@@ -175,23 +175,23 @@
           <i class="bi bi-exclamation-circle me-1"></i>La signature est obligatoire pour soumettre.
         </div>
       </div>
-      <input type="hidden" id="signatureDroitImage" name="signatureDroitImage">
-      <input type="hidden" id="signatureSanitaire"  name="signatureSanitaire">
+      <input type="hidden" id="signatureDroitImage" name="signatureDroitImage" placeholder="..." >
+      <input type="hidden" id="signatureSanitaire"  name="signatureSanitaire" placeholder="..." >
 
       <%# ---- COTISATION ---- %>
       <h5 class="text-success mt-4 mb-3"><i class="bi bi-cash me-2"></i>Cotisation</h5>
       <div class="p-4 bg-light rounded-3 mb-4">
         <div class="row g-3 align-items-center">
           <div class="col-md-4">
-            <div class="form-floating-custom">
+            <div class="form-floating mb-3">
               <input type="number" class="form-control" id="montantCotisation" name="montantCotisation"
-                     value="<%= typeInscription === 'camp' ? config.cotisationCamp : config.cotisationAnnee %>"
+                     value="<%= typeInscription === 'camp' ? config.cotisationCamp : config.cotisationAnnee % placeholder="..." >"
                      min="0" step="0.01">
               <label for="montantCotisation">Montant (€)</label>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="form-floating-custom">
+            <div class="form-floating mb-3">
               <select class="form-select" id="modePaiement" name="modePaiement">
                 <option value="">Non précisé</option>
                 <option value="cheque">Chèque</option>
@@ -212,7 +212,7 @@
       </div>
 
       <div class="form-check mb-4">
-        <input class="form-check-input" type="checkbox" id="acceptRGPD" required>
+        <input class="form-check-input" type="checkbox" id="acceptRGPD" required placeholder="..." >
         <label class="form-check-label" for="acceptRGPD">
           J'accepte la <a href="/mentions-legales" target="_blank">politique de confidentialité</a> *
         </label>
@@ -232,7 +232,15 @@
         Le brouillon ne nécessite pas de signature. Vous pourrez le compléter plus tard.
       </p>
 
-    </form>
+    
+<h5 style="margin-top:20px;">Diplôme de secourisme</h5>
+<div class="mb-3">
+<label>Déposer vos documents (PSC1, PSE1, etc.)</label>
+<input type="file" name="diplomesSecourisme" multiple accept=".pdf,.jpg,.jpeg,.png">
+<small>Vous pouvez sélectionner plusieurs fichiers</small>
+</div>
+
+</form>
   </div>
 </div>
 
