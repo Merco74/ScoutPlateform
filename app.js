@@ -113,6 +113,21 @@ const getAnneeScoute = () => {
   return `${y}-${y + 1}`;
 };
 
+/** Détermine la catégorie selon l'âge ET le sexe
+ *  Louveteaux/Louvettes : 8-11 ans (tous sexes)
+ *  Scouts : 11-17 ans (Masculin)
+ *  Guides : 11-17 ans (Féminin)
+ */
+const getCategorieParAge = (age, sexe) => {
+  if (age >= 8  && age <= 11) return 'louveteau';
+  if (age >= 11 && age <= 17) return sexe === 'Féminin' ? 'guide' : 'scout';
+  return null;
+};
+
+/** Valide un numéro de téléphone FR (06/07) ou Suisse (+41) */
+const telValide = (tel) =>
+  /^(0[6-7]d{8}|0[1-9]d{8}|+41d{9})$/.test((tel || '').replace(/s/g, ''));
+
 /** Récupère ou initialise la config globale */
 async function getConfig() {
   let config = await Config.findOne({ cle: 'global' });
@@ -397,14 +412,23 @@ app.post('/ajouter-enfant',
           bcg: req.body.vaccinBcg || 'OK',
           autres: sanitize(req.body.vaccinsAutres)
         },
-        traitementMedical:     req.body.traitementMedical     === 'on',
-        allergiesAlimentaires: req.body.allergiesAlimentaires === 'on',
-        allergiesMedicament:   req.body.allergiesMedicament   === 'on',
-        allergiesAutres:       req.body.allergiesAutres       === 'on',
-        allergiesDetails:      sanitize(req.body.allergiesDetails),
-        problemeSante:         req.body.problemeSante         === 'on',
-        problemeSanteDetails:  sanitize(req.body.problemeSanteDetails),
-        recommandationsParents: sanitize(req.body.recommandationsParents),
+        traitementMedical:            req.body.traitementMedical     === 'on',
+        traitementMedicalDetails:     sanitize(req.body.traitementMedicalDetails),
+        allergiesAlimentaires:        req.body.allergiesAlimentaires === 'on',
+        allergiesAlimentairesDetails: sanitize(req.body.allergiesAlimentairesDetails),
+        allergiesMedicament:          req.body.allergiesMedicament   === 'on',
+        allergiesMedicamentDetails:   sanitize(req.body.allergiesMedicamentDetails),
+        allergiesAutres:              req.body.allergiesAutres       === 'on',
+        allergiesAutresDetails:       sanitize(req.body.allergiesAutresDetails),
+        problemeSante:                req.body.problemeSante         === 'on',
+        problemeSanteDetails:         sanitize(req.body.problemeSanteDetails),
+        porteLunettes:                req.body.porteLunettes   === 'on',
+        porteLentilles:               req.body.porteLentilles  === 'on',
+        porteProthese:                req.body.porteProthese   === 'on',
+        porteProtheseDetails:         sanitize(req.body.porteProtheseDetails),
+        troublesComportement:         req.body.troublesComportement === 'on',
+        troublesComportementDetails:  sanitize(req.body.troublesComportementDetails),
+        recommandationsParents:       sanitize(req.body.recommandationsParents),
         vaccinScan:      files.vaccinScan?.[0]?.path,
         medicationScan:  files.medicationScan?.[0]?.path,
         otherDocuments:  files.otherDocuments?.map(f => f.path) || []
@@ -461,14 +485,23 @@ app.post('/modifier-enfant/:id',
           sexe: req.body.contactUrgenceSecondaireSexe,
           lien: req.body.contactUrgenceSecondaireLien
         } : undefined,
-        traitementMedical:     req.body.traitementMedical     === 'on',
-        allergiesAlimentaires: req.body.allergiesAlimentaires === 'on',
-        allergiesMedicament:   req.body.allergiesMedicament   === 'on',
-        allergiesAutres:       req.body.allergiesAutres       === 'on',
-        allergiesDetails:      sanitize(req.body.allergiesDetails),
-        problemeSante:         req.body.problemeSante         === 'on',
-        problemeSanteDetails:  sanitize(req.body.problemeSanteDetails),
-        recommandationsParents: sanitize(req.body.recommandationsParents)
+        traitementMedical:            req.body.traitementMedical     === 'on',
+        traitementMedicalDetails:     sanitize(req.body.traitementMedicalDetails),
+        allergiesAlimentaires:        req.body.allergiesAlimentaires === 'on',
+        allergiesAlimentairesDetails: sanitize(req.body.allergiesAlimentairesDetails),
+        allergiesMedicament:          req.body.allergiesMedicament   === 'on',
+        allergiesMedicamentDetails:   sanitize(req.body.allergiesMedicamentDetails),
+        allergiesAutres:              req.body.allergiesAutres       === 'on',
+        allergiesAutresDetails:       sanitize(req.body.allergiesAutresDetails),
+        problemeSante:                req.body.problemeSante         === 'on',
+        problemeSanteDetails:         sanitize(req.body.problemeSanteDetails),
+        porteLunettes:                req.body.porteLunettes   === 'on',
+        porteLentilles:               req.body.porteLentilles  === 'on',
+        porteProthese:                req.body.porteProthese   === 'on',
+        porteProtheseDetails:         sanitize(req.body.porteProtheseDetails),
+        troublesComportement:         req.body.troublesComportement === 'on',
+        troublesComportementDetails:  sanitize(req.body.troublesComportementDetails),
+        recommandationsParents:       sanitize(req.body.recommandationsParents)
       });
       if (files.vaccinScan?.[0])        enfant.vaccinScan     = files.vaccinScan[0].path;
       if (files.medicationScan?.[0])    enfant.medicationScan = files.medicationScan[0].path;

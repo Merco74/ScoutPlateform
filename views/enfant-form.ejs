@@ -1,6 +1,6 @@
 <%# views/enfant-form.ejs %>
 <% titre = enfant ? "Modifier " + enfant.prenom : "Ajouter un enfant" %>
-<%- include('partials/_header') %>
+<%- include('partials/_header', { extraHead: '' }) %>
 
 <div class="container py-5">
   <div class="step-card">
@@ -9,9 +9,7 @@
       <%= enfant ? 'Modifier ' + enfant.prenom + ' ' + enfant.nom : 'Ajouter un enfant' %>
     </h2>
     <p class="text-muted mb-4">
-      <%= enfant
-        ? 'Mettez à jour le profil. Les modifications seront appliquées aux prochaines inscriptions.'
-        : 'Ces informations sont sauvegardées et pré-remplies chaque année.' %>
+      <%= enfant ? 'Mettez à jour le profil.' : 'Ces informations sont sauvegardées et pré-remplies chaque année.' %>
     </p>
 
     <% if (erreur) { %>
@@ -19,22 +17,20 @@
     <% } %>
 
     <form action="<%= enfant ? '/modifier-enfant/' + enfant._id : '/ajouter-enfant' %>"
-          method="POST" enctype="multipart/form-data" novalidate>
+          method="POST" enctype="multipart/form-data" novalidate id="enfantForm">
 
       <%# ---- IDENTITÉ ---- %>
       <h5 class="text-success mb-3"><i class="bi bi-person me-2"></i>Identité de l'enfant</h5>
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <div class="form-floating-custom">
-            <input type="text" class="form-control" id="nom" name="nom"
-                   value="<%= enfant?.nom || '' %>" required>
+            <input type="text" class="form-control" id="nom" name="nom" value="<%= enfant?.nom || '' %>" required>
             <label for="nom">Nom *</label>
           </div>
         </div>
         <div class="col-md-6">
           <div class="form-floating-custom">
-            <input type="text" class="form-control" id="prenom" name="prenom"
-                   value="<%= enfant?.prenom || '' %>" required>
+            <input type="text" class="form-control" id="prenom" name="prenom" value="<%= enfant?.prenom || '' %>" required>
             <label for="prenom">Prénom *</label>
           </div>
         </div>
@@ -42,13 +38,13 @@
           <div class="form-floating-custom">
             <input type="date" class="form-control" id="dateNaissance" name="dateNaissance"
                    value="<%= enfant ? new Date(enfant.dateNaissance).toISOString().split('T')[0] : '' %>"
-                   required oninput="calculerAge(this)">
+                   required oninput="calculerCategorie()">
             <label for="dateNaissance">Date de naissance *</label>
           </div>
         </div>
         <div class="col-md-4">
           <div class="form-floating-custom">
-            <select class="form-select" id="sexe" name="sexe" required>
+            <select class="form-select" id="sexe" name="sexe" required onchange="calculerCategorie()">
               <option value="">Choisir</option>
               <option value="Masculin" <%= enfant?.sexe === 'Masculin' ? 'selected' : '' %>>Masculin</option>
               <option value="Féminin"  <%= enfant?.sexe === 'Féminin'  ? 'selected' : '' %>>Féminin</option>
@@ -59,33 +55,51 @@
         <div class="col-md-4">
           <div class="form-floating-custom">
             <select class="form-select" id="categorie" name="categorie" required>
-              <option value="">Choisir</option>
-              <option value="louveteau" <%= enfant?.categorie === 'louveteau' ? 'selected' : '' %>>Louveteaux (8-11 ans)</option>
-              <option value="scout"     <%= enfant?.categorie === 'scout'     ? 'selected' : '' %>>Scouts (11-17 ans)</option>
-              <option value="guide"     <%= enfant?.categorie === 'guide'     ? 'selected' : '' %>>Guides (11-17 ans)</option>
+              <option value="">Auto selon âge/sexe</option>
+              <option value="louveteau" <%= enfant?.categorie === 'louveteau' ? 'selected' : '' %>>Louveteaux/Louvettes (8-11 ans)</option>
+              <option value="scout"     <%= enfant?.categorie === 'scout'     ? 'selected' : '' %>>Scouts (11-17 ans, Masculin)</option>
+              <option value="guide"     <%= enfant?.categorie === 'guide'     ? 'selected' : '' %>>Guides (11-17 ans, Féminin)</option>
             </select>
             <label for="categorie">Catégorie *</label>
           </div>
         </div>
+        <div class="col-md-6">
+          <div class="form-floating-custom">
+            <input type="tel" class="form-control" id="enfantTel" name="enfantTel"
+                   value="<%= enfant?.telPortable || '' %>"
+                   placeholder="06... ou +41..."
+                   oninput="validerTel(this)">
+            <label for="enfantTel">Tél. de l'enfant (si portable)</label>
+            <div class="invalid-feedback">Format invalide (06/07... ou +41...)</div>
+          </div>
+        </div>
+
+        <%# Autre club %>
         <div class="col-12">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="autreClub" name="autreClub"
                    <%= enfant?.autreClub ? 'checked' : '' %> onchange="toggleAutreClub(this)">
-            <label class="form-check-label" for="autreClub">Membre d'un autre club</label>
+            <label class="form-check-label" for="autreClub">Membre d'un autre club sportif des Scouts de Cluses</label>
           </div>
           <div id="autreClubDiv" class="mt-2 <%= !enfant?.autreClub ? 'd-none' : '' %>">
             <div class="form-floating-custom">
-              <input type="text" class="form-control" id="nomAutreClub" name="nomAutreClub"
-                     value="<%= enfant?.nomAutreClub || '' %>">
-              <label for="nomAutreClub">Nom du club</label>
+              <select class="form-select" id="nomAutreClub" name="nomAutreClub">
+                <option value="">Choisir le club</option>
+                <option value="karate"        <%= enfant?.nomAutreClub === 'karate'        ? 'selected' : '' %>>Karaté</option>
+                <option value="judo"          <%= enfant?.nomAutreClub === 'judo'          ? 'selected' : '' %>>Judo</option>
+                <option value="natation"      <%= enfant?.nomAutreClub === 'natation'      ? 'selected' : '' %>>Natation</option>
+                <option value="ski"           <%= enfant?.nomAutreClub === 'ski'           ? 'selected' : '' %>>Ski alpin</option>
+                <option value="ski-randonnee" <%= enfant?.nomAutreClub === 'ski-randonnee' ? 'selected' : '' %>>Ski de randonnée</option>
+              </select>
+              <label for="nomAutreClub">Club</label>
             </div>
           </div>
         </div>
       </div>
 
-      <%# ---- CONTACT D'URGENCE ---- %>
+      <%# ---- CONTACT D'URGENCE PRINCIPAL ---- %>
       <h5 class="text-success mb-3"><i class="bi bi-telephone-fill me-2"></i>Contact d'urgence principal</h5>
-      <div class="row g-3 mb-4">
+      <div class="row g-3 mb-3">
         <div class="col-md-4">
           <div class="form-floating-custom">
             <input type="text" class="form-control" name="contactUrgenceNom"
@@ -102,11 +116,11 @@
         </div>
         <div class="col-md-4">
           <div class="form-floating-custom">
-            <input type="tel" class="form-control" name="contactUrgenceTel"
+            <input type="tel" class="form-control" id="contact1Tel" name="contactUrgenceTel"
                    value="<%= enfant?.contactUrgence?.telPortable || '' %>"
-                   pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)">
-            <label>Tél. portable *</label>
-            <div class="invalid-feedback">Format : 06XXXXXXXX</div>
+                   placeholder="06... ou +41..." required oninput="validerTel(this)">
+            <label>Tél. portable * (FR ou CH)</label>
+            <div class="invalid-feedback">Format invalide</div>
           </div>
         </div>
         <div class="col-md-6">
@@ -135,7 +149,8 @@
       <%# Contact urgence secondaire %>
       <div class="mb-3">
         <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleContact2">
-          <i class="bi bi-plus-circle me-1"></i>Ajouter un contact d'urgence secondaire
+          <i class="bi bi-<%= enfant?.contactUrgenceSecondaire?.nom ? 'dash' : 'plus' %>-circle me-1"></i>
+          <%= enfant?.contactUrgenceSecondaire?.nom ? 'Contact secondaire ajouté' : 'Ajouter un contact secondaire' %>
         </button>
       </div>
       <div id="contact2Section" class="<%= enfant?.contactUrgenceSecondaire?.nom ? '' : 'd-none' %> mb-4">
@@ -157,11 +172,61 @@
           </div>
           <div class="col-md-4">
             <div class="form-floating-custom">
-              <input type="tel" class="form-control" name="contactUrgenceSecondaireTel"
+              <input type="tel" class="form-control" id="contact2Tel" name="contactUrgenceSecondaireTel"
                      value="<%= enfant?.contactUrgenceSecondaire?.telPortable || '' %>"
-                     oninput="validerTel(this)">
-              <label>Tél. portable</label>
+                     placeholder="06... ou +41..." oninput="validerTelSecondaire(this)">
+              <label>Tél. portable (FR ou CH)</label>
+              <div class="invalid-feedback" id="contact2TelError">Format invalide ou identique au contact principal</div>
             </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating-custom">
+              <select class="form-select" name="contactUrgenceSecondaireSexe">
+                <option value="">Choisir</option>
+                <option value="Homme" <%= enfant?.contactUrgenceSecondaire?.sexe === 'Homme' ? 'selected' : '' %>>Homme</option>
+                <option value="Femme" <%= enfant?.contactUrgenceSecondaire?.sexe === 'Femme' ? 'selected' : '' %>>Femme</option>
+              </select>
+              <label>Sexe</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating-custom">
+              <select class="form-select" name="contactUrgenceSecondaireLien">
+                <option value="">Choisir</option>
+                <option value="Parents"      <%= enfant?.contactUrgenceSecondaire?.lien === 'Parents'      ? 'selected' : '' %>>Parents</option>
+                <option value="Famille"      <%= enfant?.contactUrgenceSecondaire?.lien === 'Famille'      ? 'selected' : '' %>>Famille</option>
+                <option value="Tuteur légal" <%= enfant?.contactUrgenceSecondaire?.lien === 'Tuteur légal' ? 'selected' : '' %>>Tuteur légal</option>
+              </select>
+              <label>Lien</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ---- MÉDECIN TRAITANT (obligatoire) ---- %>
+      <h5 class="text-success mb-3"><i class="bi bi-hospital me-2"></i>Médecin traitant <span class="text-danger">*</span></h5>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant"
+                   value="<%= enfant?.medecinTraitant || parent.medecinTraitant || '' %>" required>
+            <label for="medecinTraitant">Nom du médecin *</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="tel" class="form-control" id="medecinTraitantTel" name="medecinTraitantTel"
+                   value="<%= enfant?.medecinTraitantTel || '' %>"
+                   placeholder="04..." required oninput="validerTel(this)">
+            <label for="medecinTraitantTel">Téléphone du cabinet *</label>
+            <div class="invalid-feedback">Format invalide</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating-custom">
+            <input type="text" class="form-control" id="medecinTraitantAdresse" name="medecinTraitantAdresse"
+                   value="<%= enfant?.medecinTraitantAdresse || '' %>">
+            <label for="medecinTraitantAdresse">Adresse du cabinet</label>
           </div>
         </div>
       </div>
@@ -172,82 +237,161 @@
         <small><i class="bi bi-shield-lock me-1"></i>Document confidentiel — RGPD respecté</small>
       </div>
 
+      <%# Traitement médical %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="traitementMedical" name="traitementMedical"
+                 <%= enfant?.traitementMedical ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'traitementMedicalDiv')">
+          <label class="form-check-label fw-bold" for="traitementMedical">Traitement médical en cours</label>
+        </div>
+        <div id="traitementMedicalDiv" class="<%= enfant?.traitementMedical ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="traitementMedicalDetails" rows="2"
+                    placeholder="Nom du médicament, posologie, fréquence..."><%= enfant?.traitementMedicalDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <%# Allergies alimentaires %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="allergiesAlimentaires" name="allergiesAlimentaires"
+                 <%= enfant?.allergiesAlimentaires ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'allergiesAlimentairesDiv')">
+          <label class="form-check-label fw-bold" for="allergiesAlimentaires">Allergies alimentaires</label>
+        </div>
+        <div id="allergiesAlimentairesDiv" class="<%= enfant?.allergiesAlimentaires ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="allergiesAlimentairesDetails" rows="2"
+                    placeholder="Précisez les aliments et la sévérité de la réaction..."><%= enfant?.allergiesAlimentairesDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <%# Allergies médicaments %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="allergiesMedicament" name="allergiesMedicament"
+                 <%= enfant?.allergiesMedicament ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'allergiesMedicamentDiv')">
+          <label class="form-check-label fw-bold" for="allergiesMedicament">Allergies aux médicaments</label>
+        </div>
+        <div id="allergiesMedicamentDiv" class="<%= enfant?.allergiesMedicament ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="allergiesMedicamentDetails" rows="2"
+                    placeholder="Précisez les médicaments et la réaction observée..."><%= enfant?.allergiesMedicamentDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <%# Autres allergies %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="allergiesAutres" name="allergiesAutres"
+                 <%= enfant?.allergiesAutres ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'allergiesAutresDiv')">
+          <label class="form-check-label fw-bold" for="allergiesAutres">Autres allergies (pollen, animaux, insectes...)</label>
+        </div>
+        <div id="allergiesAutresDiv" class="<%= enfant?.allergiesAutres ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="allergiesAutresDetails" rows="2"
+                    placeholder="Précisez la nature et la sévérité..."><%= enfant?.allergiesAutresDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <%# Problème de santé %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="problemeSante" name="problemeSante"
+                 <%= enfant?.problemeSante ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'problemeSanteDiv')">
+          <label class="form-check-label fw-bold" for="problemeSante">Problème de santé particulier</label>
+        </div>
+        <div id="problemeSanteDiv" class="<%= enfant?.problemeSante ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="problemeSanteDetails" rows="3"
+                    placeholder="Asthme, diabète, épilepsie, maladie chronique... Précisez les symptômes et les conduites à tenir."><%= enfant?.problemeSanteDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <%# ---- ÉQUIPEMENTS ET COMPORTEMENT ---- %>
+      <h5 class="text-success mb-3 mt-4"><i class="bi bi-person-gear me-2"></i>Équipements et particularités</h5>
+
       <div class="row g-3 mb-3">
         <div class="col-md-4">
           <div class="form-check form-switch p-3 bg-light rounded-3">
-            <input class="form-check-input" type="checkbox" id="traitementMedical" name="traitementMedical"
-                   <%= enfant?.traitementMedical ? 'checked' : '' %>>
-            <label class="form-check-label ms-3" for="traitementMedical">Traitement en cours</label>
+            <input class="form-check-input" type="checkbox" id="porteLunettes" name="porteLunettes"
+                   <%= enfant?.porteLunettes ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="porteLunettes">Porte des lunettes</label>
           </div>
         </div>
         <div class="col-md-4">
           <div class="form-check form-switch p-3 bg-light rounded-3">
-            <input class="form-check-input" type="checkbox" id="allergiesAlimentaires" name="allergiesAlimentaires"
-                   <%= enfant?.allergiesAlimentaires ? 'checked' : '' %>>
-            <label class="form-check-label ms-3" for="allergiesAlimentaires">Allergies alimentaires</label>
+            <input class="form-check-input" type="checkbox" id="porteLentilles" name="porteLentilles"
+                   <%= enfant?.porteLentilles ? 'checked' : '' %>>
+            <label class="form-check-label ms-3" for="porteLentilles">Porte des lentilles</label>
           </div>
         </div>
         <div class="col-md-4">
           <div class="form-check form-switch p-3 bg-light rounded-3">
-            <input class="form-check-input" type="checkbox" id="allergiesMedicament" name="allergiesMedicament"
-                   <%= enfant?.allergiesMedicament ? 'checked' : '' %>>
-            <label class="form-check-label ms-3" for="allergiesMedicament">Allergies médicaments</label>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="form-check form-switch p-3 bg-light rounded-3">
-            <input class="form-check-input" type="checkbox" id="problemeSante" name="problemeSante"
-                   <%= enfant?.problemeSante ? 'checked' : '' %>>
-            <label class="form-check-label ms-3" for="problemeSante">Problème de santé</label>
+            <input class="form-check-input" type="checkbox" id="porteProthese" name="porteProthese"
+                   <%= enfant?.porteProthese ? 'checked' : '' %>
+                   onchange="toggleDetail(this, 'porteProtheseDiv')">
+            <label class="form-check-label ms-3" for="porteProthese">Porte une prothèse</label>
           </div>
         </div>
       </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-12">
-          <div class="form-floating-custom">
-            <textarea class="form-control" id="allergiesDetails" name="allergiesDetails"
-                      rows="2" style="height:80px"><%= enfant?.allergiesDetails || '' %></textarea>
-            <label for="allergiesDetails">Détails allergies / traitements</label>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="form-floating-custom">
-            <textarea class="form-control" id="problemeSanteDetails" name="problemeSanteDetails"
-                      rows="2" style="height:80px"><%= enfant?.problemeSanteDetails || '' %></textarea>
-            <label for="problemeSanteDetails">Détails problème de santé</label>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="form-floating-custom">
-            <textarea class="form-control" id="recommandationsParents" name="recommandationsParents"
-                      rows="2" style="height:80px"><%= enfant?.recommandationsParents || '' %></textarea>
-            <label for="recommandationsParents">Recommandations particulières</label>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="form-floating-custom">
-            <input type="text" class="form-control" id="medecinTraitant" name="medecinTraitant"
-                   value="<%= enfant?.medecinTraitant || parent.medecinTraitant || '' %>">
-            <label for="medecinTraitant">Médecin traitant (hérité du profil parent si vide)</label>
-          </div>
+      <div id="porteProtheseDiv" class="<%= enfant?.porteProthese ? '' : 'd-none' %> mb-3">
+        <div class="form-floating-custom">
+          <input type="text" class="form-control" name="porteProtheseDetails"
+                 value="<%= enfant?.porteProtheseDetails || '' %>"
+                 placeholder="Précisez : auditive, dentaire, autre...">
+          <label>Type de prothèse</label>
         </div>
       </div>
 
-      <%# Documents médicaux %>
+      <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="troublesComportement" name="troublesComportement"
+                 <%= enfant?.troublesComportement ? 'checked' : '' %>
+                 onchange="toggleDetail(this, 'troublesComportementDiv')">
+          <label class="form-check-label fw-bold" for="troublesComportement">
+            Particularités de comportement ou du développement
+          </label>
+        </div>
+        <div id="troublesComportementDiv" class="<%= enfant?.troublesComportement ? '' : 'd-none' %> mt-2">
+          <textarea class="form-control" name="troublesComportementDetails" rows="3"
+                    placeholder="Ex : trouble de l'attention (TDAH), hyperactivité, apnées du sommeil, dyspraxie, vertiges, anxiété, phobie... Précisez les bonnes pratiques à adopter."><%= enfant?.troublesComportementDetails || '' %></textarea>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="form-floating-custom">
+          <textarea class="form-control" id="recommandationsParents" name="recommandationsParents"
+                    rows="3" style="height:90px"
+                    placeholder="Toute information utile pour l'encadrement de votre enfant..."><%= enfant?.recommandationsParents || '' %></textarea>
+          <label for="recommandationsParents">Recommandations particulières des parents</label>
+        </div>
+      </div>
+
+      <%# ---- DOCUMENTS MÉDICAUX ---- %>
       <h5 class="text-success mb-3"><i class="bi bi-paperclip me-2"></i>Documents médicaux</h5>
       <div class="row g-3 mb-4">
         <div class="col-md-6">
-          <label class="form-label fw-bold">Carnet de vaccins</label>
+          <label class="form-label fw-bold">
+            Carnet de vaccins <span class="text-danger">*</span>
+            <small class="text-muted fw-normal">(PDF, JPG ou PNG — converti automatiquement en PDF)</small>
+          </label>
           <% if (enfant?.vaccinScan) { %>
-            <p class="small text-muted mb-1"><i class="bi bi-check-circle text-success me-1"></i>Fichier existant : <%= enfant.vaccinScan %></p>
+            <p class="small text-success mb-1"><i class="bi bi-check-circle me-1"></i>
+              <a href="<%= enfant.vaccinScan %>" target="_blank">Fichier existant</a> — nouveau fichier pour remplacer
+            </p>
           <% } %>
-          <input type="file" class="form-control" name="vaccinScan" accept="application/pdf,image/*">
+          <input type="file" class="form-control" name="vaccinScan"
+                 accept="application/pdf,image/*" <%= !enfant?.vaccinScan ? 'required' : '' %>>
         </div>
         <div class="col-md-6">
-          <label class="form-label fw-bold">Ordonnances</label>
+          <label class="form-label fw-bold">
+            Ordonnances
+            <small class="text-muted fw-normal">(PDF, JPG ou PNG)</small>
+          </label>
           <% if (enfant?.medicationScan) { %>
-            <p class="small text-muted mb-1"><i class="bi bi-check-circle text-success me-1"></i>Fichier existant : <%= enfant.medicationScan %></p>
+            <p class="small text-success mb-1"><i class="bi bi-check-circle me-1"></i>
+              <a href="<%= enfant.medicationScan %>" target="_blank">Fichier existant</a>
+            </p>
           <% } %>
           <input type="file" class="form-control" name="medicationScan" accept="application/pdf,image/*">
         </div>
@@ -267,26 +411,79 @@
 <%- include('partials/_footer') %>
 
 <script>
-  function validerTel(i) {
-    const ok = /^0[6-7]\d{8}$/.test(i.value.replace(/\s/g, ''));
-    i.classList.toggle('is-invalid', !ok && i.value.length > 0);
-    i.classList.toggle('is-valid', ok);
+  // ---- Validation téléphone FR ou Suisse ----
+  function validerTel(input) {
+    const val = input.value.replace(/\s/g, '');
+    const ok  = /^(0[0-9]\d{8}|0[6-7]\d{8}|\+41\d{9})$/.test(val);
+    input.classList.toggle('is-invalid', !ok && val.length > 0);
+    input.classList.toggle('is-valid',   ok && val.length > 0);
   }
+
+  // ---- Validation contact secondaire (différent du principal) ----
+  function validerTelSecondaire(input) {
+    const val      = input.value.replace(/\s/g, '');
+    const tel1     = document.getElementById('contact1Tel')?.value.replace(/\s/g, '');
+    const formatOk = /^(0[0-9]\d{8}|0[6-7]\d{8}|\+41\d{9})$/.test(val);
+    const different = val !== tel1;
+    const ok = formatOk && different;
+    input.classList.toggle('is-invalid', !ok && val.length > 0);
+    input.classList.toggle('is-valid',   ok && val.length > 0);
+    const errEl = document.getElementById('contact2TelError');
+    if (errEl) {
+      errEl.textContent = !formatOk
+        ? 'Format invalide (06/07... ou +41...)'
+        : 'Identique au contact principal';
+    }
+  }
+
+  // ---- Toggle club ----
   function toggleAutreClub(cb) {
     document.getElementById('autreClubDiv').classList.toggle('d-none', !cb.checked);
   }
-  function calculerAge(input) {
-    if (!input.value) return;
-    const age = Math.floor((new Date() - new Date(input.value)) / (365.25 * 24 * 3600 * 1000));
-    const cat = document.getElementById('categorie');
-    if (age >= 8  && age <= 11) cat.value = 'louveteau';
-    else if (age >= 11 && age <= 17) cat.value = 'scout';
-  }
+
+  // ---- Toggle contact secondaire ----
   document.getElementById('toggleContact2').addEventListener('click', function () {
     const s = document.getElementById('contact2Section');
     s.classList.toggle('d-none');
     this.innerHTML = s.classList.contains('d-none')
-      ? '<i class="bi bi-plus-circle me-1"></i>Ajouter un contact d\'urgence secondaire'
+      ? '<i class="bi bi-plus-circle me-1"></i>Ajouter un contact secondaire'
       : '<i class="bi bi-dash-circle me-1"></i>Retirer le contact secondaire';
+  });
+
+  // ---- Toggle champs détail sanitaire ----
+  function toggleDetail(cb, divId) {
+    document.getElementById(divId).classList.toggle('d-none', !cb.checked);
+    // Rendre le textarea obligatoire si coché
+    const textarea = document.querySelector(`#${divId} textarea`);
+    if (textarea) textarea.required = cb.checked;
+  }
+
+  // ---- Calcul automatique catégorie selon âge ET sexe ----
+  function calculerCategorie() {
+    const dateVal = document.getElementById('dateNaissance').value;
+    const sexe    = document.getElementById('sexe').value;
+    if (!dateVal || !sexe) return;
+    const age = Math.floor((new Date() - new Date(dateVal)) / (365.25 * 24 * 3600 * 1000));
+    const cat = document.getElementById('categorie');
+    if (age >= 8 && age <= 11) {
+      cat.value = 'louveteau';
+    } else if (age >= 11 && age <= 17) {
+      cat.value = sexe === 'Féminin' ? 'guide' : 'scout';
+    } else {
+      cat.value = '';
+    }
+  }
+
+  // ---- Init : rendre obligatoires les textareas déjà cochés ----
+  document.addEventListener('DOMContentLoaded', () => {
+    ['traitementMedical','allergiesAlimentaires','allergiesMedicament',
+     'allergiesAutres','problemeSante','troublesComportement'].forEach(id => {
+      const cb = document.getElementById(id);
+      if (cb?.checked) {
+        const divId = id + 'Div';
+        const textarea = document.querySelector(`#${divId} textarea`);
+        if (textarea) textarea.required = true;
+      }
+    });
   });
 </script>

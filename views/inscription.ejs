@@ -113,40 +113,98 @@
             </p>
 
             <div id="encadrantSection" class="d-none mt-4">
+
               <h6 class="text-success mb-3">Catégorie(s) encadrée(s)</h6>
               <div class="d-flex gap-3 flex-wrap mb-4">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="louveteau" id="catLouveteau">
-                  <label class="form-check-label" for="catLouveteau">Louveteaux (8-11 ans)</label>
+                  <label class="form-check-label" for="catLouveteau">Louveteaux/Louvettes (8-11 ans)</label>
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="scout" id="catScout">
-                  <label class="form-check-label" for="catScout">Scouts (11-17 ans)</label>
+                  <label class="form-check-label" for="catScout">Scouts (11-17 ans, Masculin)</label>
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="guide" id="catGuide">
-                  <label class="form-check-label" for="catGuide">Guides (11-17 ans)</label>
+                  <label class="form-check-label" for="catGuide">Guides (11-17 ans, Féminin)</label>
                 </div>
               </div>
 
-              <h6 class="text-success mb-3">Documents justificatifs</h6>
-              <div class="row g-3">
+              <h6 class="text-success mb-3">Diplôme ou équivalence d'animation</h6>
+              <p class="text-muted small mb-2">
+                BAFA, BAFD, BPJEPS, licence STAPS, professeur des écoles, ou tout autre diplôme conférant une équivalence.
+              </p>
+              <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <label class="form-label fw-bold">BAFA / diplôme d'animation</label>
-                  <input type="file" class="form-control" name="bafaScan" accept="application/pdf,image/*">
+                  <div class="form-floating-custom">
+                    <input type="text" class="form-control" name="diplomeIntitule" placeholder="Ex: Licence STAPS, BAFA, Professeur des écoles...">
+                    <label>Intitulé du diplôme / équivalence</label>
+                  </div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-bold">Extrait de casier judiciaire (bulletin n°3)</label>
-                  <input type="file" class="form-control" name="casierJudiciaire" accept="application/pdf,image/*">
-                </div>
-                <div class="col-12">
-                  <label class="form-label fw-bold">Autres documents</label>
-                  <input type="file" class="form-control" name="autresDocuments" accept="application/pdf,image/*" multiple>
+                  <label class="form-label fw-bold">Scan du diplôme <small class="text-muted fw-normal">(PDF, JPG ou PNG)</small></label>
+                  <input type="file" class="form-control" name="diplomeScan" accept="application/pdf,image/*">
                 </div>
               </div>
-              <div class="mt-3 p-3 rounded-3" style="background:#fff3cd; border-left:4px solid #ffc107;">
+
+              <h6 class="text-success mb-3">Secourisme</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <div class="form-floating-custom">
+                    <select class="form-select" name="secourismeType" id="secourismeType" onchange="toggleSecourismeAutre(this)">
+                      <option value="">Aucun</option>
+                      <option value="psc1">PSC1 (Prévention et Secours Civiques)</option>
+                      <option value="sst">SST (Sauveteur Secouriste du Travail)</option>
+                      <option value="psc1-sst">PSC1 + SST</option>
+                      <option value="autre">Autre diplôme de secourisme</option>
+                    </select>
+                    <label>Diplôme de secourisme</label>
+                  </div>
+                </div>
+                <div class="col-md-6" id="secourismeAutreDiv" style="display:none">
+                  <div class="form-floating-custom">
+                    <input type="text" class="form-control" name="secourismeAutre" placeholder="Précisez...">
+                    <label>Précisez le diplôme</label>
+                  </div>
+                </div>
+              </div>
+
+              <h6 class="text-success mb-3">Permis de conduire</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-12">
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="permisConduire" name="permisConduire"
+                           onchange="togglePermisEnc(this)">
+                    <label class="form-check-label" for="permisConduire">Je possède un permis de conduire</label>
+                  </div>
+                  <div id="permisEncDiv" class="d-none">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Catégories</label>
+                        <div class="d-flex gap-3 flex-wrap">
+                          <% ['B','BE','D','DE'].forEach(cat => { %>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" name="permisCategories" value="<%= cat %>" id="permisEnc<%= cat %>">
+                              <label class="form-check-label" for="permisEnc<%= cat %>"><%= cat %></label>
+                            </div>
+                          <% }) %>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-floating-custom">
+                          <input type="text" class="form-control" name="permisNumero" placeholder="N° de permis">
+                          <label>Numéro de permis</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-3" style="background:#fff3cd; border-left:4px solid #ffc107;">
                 <small><i class="bi bi-info-circle me-1"></i>
                   Votre accès encadrant sera activé après validation de vos documents par l'administrateur.
+                  Le casier judiciaire n'est plus à fournir : il est vérifié directement par les services de l'État via la déclaration nominative du camp.
                 </small>
               </div>
             </div>
@@ -183,5 +241,14 @@
   function validerConfirm(i){ const ok=i.value===document.getElementById('motDePasse').value; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function toggleEncadrant(cb) {
     document.getElementById('encadrantSection').classList.toggle('d-none', !cb.checked);
+  }
+</script>
+<script>
+  function toggleSecourismeAutre(sel) {
+    document.getElementById('secourismeAutreDiv').style.display =
+      sel.value === 'autre' ? 'block' : 'none';
+  }
+  function togglePermisEnc(cb) {
+    document.getElementById('permisEncDiv').classList.toggle('d-none', !cb.checked);
   }
 </script>

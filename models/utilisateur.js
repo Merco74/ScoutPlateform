@@ -44,15 +44,30 @@ const utilisateurSchema = new mongoose.Schema({
 
   // === PROFIL ENCADRANT (rôle encadrant uniquement) ===
   encadrant: {
-    // Catégories qu'il encadre (peut en gérer plusieurs)
+    // Catégories encadrées
     categories: {
       type: [String],
       enum: ['louveteau', 'scout', 'guide']
     },
-    // Documents justificatifs
-    bafaScan:        String, // nom du fichier uploadé
-    casierJudiciaire: String,
-    autresDocuments: [String],
+    // Diplôme d'animation (BAFA, BAFD, BPJEPS, licence STAPS, prof des écoles...)
+    // Intitulé libre car de nombreuses équivalences existent
+    diplomeScan:     String, // URL Cloudinary
+    diplomeIntitule: String, // ex: "Licence STAPS", "BAFA", "Professeur des écoles"
+
+    // Secourisme
+    secourisme: {
+      psc1:   { type: Boolean, default: false },
+      sst:    { type: Boolean, default: false },
+      autre:  String // précision si autre diplôme de secourisme
+    },
+
+    // Permis de conduire
+    permisConduire: {
+      possede:    { type: Boolean, default: false },
+      categories: [String], // B, BE, D...
+      numero:     String
+    },
+
     // Statut de validation par l'admin
     statut: {
       type: String,

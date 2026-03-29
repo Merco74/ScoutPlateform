@@ -1,6 +1,4 @@
-// models/Enfant.js
-// Profil permanent de l'enfant. Mis à jour chaque année si besoin.
-// La fiche sanitaire est stockée ici car elle appartient à l'enfant, pas à l'inscription.
+// models/enfant.js
 const mongoose = require('mongoose');
 
 const enfantSchema = new mongoose.Schema({
@@ -8,34 +6,40 @@ const enfantSchema = new mongoose.Schema({
   // === LIEN PARENT ===
   parentId: {
     type:     mongoose.Schema.Types.ObjectId,
-    ref:      'Parent',
+    ref:      'Utilisateur',
     required: true,
     index:    true
   },
 
-  // === IDENTITÉ (ne change pas) ===
+  // === IDENTITÉ ===
   nom:           { type: String, required: true, trim: true },
   prenom:        { type: String, required: true, trim: true },
   dateNaissance: { type: Date,   required: true },
   sexe:          { type: String, required: true, enum: ['Masculin', 'Féminin'] },
+  // Téléphone de l'enfant (optionnel, si l'enfant possède un portable)
+  telPortable:   String,
 
   // === CATÉGORIE SCOUT ===
-  // Déduite de l'âge mais stockée pour pouvoir corriger manuellement si besoin
+  // Calculée selon l'âge ET le sexe :
+  //   Louveteaux/Louvettes : 8-11 ans (tous sexes)
+  //   Scouts : 11-17 ans (Masculin)
+  //   Guides : 11-17 ans (Féminin)
   categorie: {
     type:     String,
     required: true,
     enum:     ['louveteau', 'scout', 'guide']
   },
 
-  // === ADRESSE (héritée du parent par défaut, surchargeable si différente) ===
+  // === ADRESSE (héritée du parent si vide) ===
   adresse:    String,
   ville:      String,
   codePostal: { type: String, match: /^\d{5}$/ },
 
-  // === CONTACTS D'URGENCE (propres à l'enfant) ===
+  // === CONTACTS D'URGENCE ===
   contactUrgence: {
     nom:         { type: String, required: true },
     prenom:      { type: String, required: true },
+    // Téléphone FR (06/07) ou Suisse (+41 ou 07x)
     telPortable: { type: String, required: true },
     sexe:        { type: String, enum: ['Homme', 'Femme'], required: true },
     lien:        { type: String, enum: ['Parents', 'Famille', 'Tuteur légal'], required: true }
@@ -49,11 +53,12 @@ const enfantSchema = new mongoose.Schema({
     lien:        { type: String, enum: ['Parents', 'Famille', 'Tuteur légal', null] }
   },
 
-  // === AUTRE CLUB ===
+  // === AUTRE CLUB SPORTIF (scouts de Cluses) ===
   autreClub:    { type: Boolean, default: false },
+  // Valeurs : 'karate' | 'judo' | 'natation' | 'ski' | 'ski-randonnee'
   nomAutreClub: String,
 
-  // === FICHE SANITAIRE (mise à jour chaque année si besoin) ===
+  // === FICHE SANITAIRE ===
   vaccinsObligatoires: { type: Boolean, default: true },
   vaccinsRecommandes: {
     diphtérie:    String,
@@ -67,31 +72,50 @@ const enfantSchema = new mongoose.Schema({
     autres:       String
   },
 
-  traitementMedical:     { type: Boolean, default: false },
-  allergiesAlimentaires: { type: Boolean, default: false },
-  allergiesMedicament:   { type: Boolean, default: false },
-  allergiesAutres:       { type: Boolean, default: false },
-  allergiesDetails:      String,
+  traitementMedical:      { type: Boolean, default: false },
+  traitementMedicalDetails: String,
 
-  problemeSante:        { type: Boolean, default: false },
-  problemeSanteDetails: String,
+  allergiesAlimentaires:  { type: Boolean, default: false },
+  allergiesAlimentairesDetails: String,
+
+  allergiesMedicament:    { type: Boolean, default: false },
+  allergiesMedicamentDetails: String,
+
+  allergiesAutres:        { type: Boolean, default: false },
+  allergiesAutresDetails: String,
+
+  problemeSante:          { type: Boolean, default: false },
+  problemeSanteDetails:   String,
+
+  // === COMPORTEMENT ET PARTICULARITÉS ===
+  // Troubles, comportements, équipements spéciaux
+  porteLunettes:    { type: Boolean, default: false },
+  porteLentilles:   { type: Boolean, default: false },
+  porteProthese:    { type: Boolean, default: false },
+  porteProtheseDetails: String, // précision : auditive, dentaire...
+
+  troublesComportement:        { type: Boolean, default: false },
+  troublesComportementDetails: String,
+  // ex: TDAH, apnée du sommeil, dyspraxie, vertiges, trouble du sommeil...
+
   recommandationsParents: String,
 
-  // Médecin traitant (hérite du parent, surchargeable par enfant)
-  medecinTraitant: String,
+  // === MÉDECIN TRAITANT (obligatoire) ===
+  medecinTraitant:         { type: String, required: true },
+  medecinTraitantTel:      { type: String, required: true },
+  medecinTraitantAdresse:  String,
 
-  // === FICHIERS MÉDICAUX ===
-  vaccinScan:     String, // nom du fichier uploadé
+  // === FICHIERS MÉDICAUX (URLs Cloudinary) ===
+  vaccinScan:     { type: String, required: true }, // obligatoire
   medicationScan: String,
   otherDocuments: [String],
 
   // === MÉTADONNÉES ===
-  dateCreation:       { type: Date, default: Date.now },
-  dateDerniereModif:  { type: Date, default: Date.now }
+  dateCreation:      { type: Date, default: Date.now },
+  dateDerniereModif: { type: Date, default: Date.now }
 
 }, { collection: 'enfants' });
 
-// Met à jour dateDerniereModif automatiquement
 enfantSchema.pre('save', function (next) {
   this.dateDerniereModif = new Date();
   next();
