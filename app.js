@@ -389,6 +389,7 @@ app.post('/ajouter-enfant',
         autreClub: req.body.autreClub === 'on',
         nomAutreClub: sanitize(req.body.nomAutreClub),
         medecinTraitant: sanitize(req.body.medecinTraitant) || parent.medecinTraitant,
+        medecinTraitantTel: true,
         contactUrgence: {
           nom: sanitize(req.body.contactUrgenceNom),
           prenom: sanitize(req.body.contactUrgencePrenom),
