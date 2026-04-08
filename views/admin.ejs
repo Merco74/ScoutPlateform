@@ -175,8 +175,8 @@
               <a href="/admin/encadrant/<%= enc._id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
             </div>
             <div class="d-flex gap-2 flex-wrap mb-3">
-              <% if (enc.encadrant?.bafaScan) { %><a href="/uploads/<%= enc.encadrant.bafaScan %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>BAFA</a><% } else { %><span class="badge bg-secondary">BAFA manquant</span><% } %>
-              <% if (enc.encadrant?.casierJudiciaire) { %><a href="/uploads/<%= enc.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>Casier</a><% } else { %><span class="badge bg-secondary">Casier manquant</span><% } %>
+              <% if (enc.encadrant?.bafaScan) { %><a href="<%= enc.encadrant.bafaScan %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>BAFA</a><% } else { %><span class="badge bg-secondary">BAFA manquant</span><% } %>
+              <% if (enc.encadrant?.casierJudiciaire) { %><a href="<%= enc.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>Casier</a><% } else { %><span class="badge bg-secondary">Casier manquant</span><% } %>
             </div>
             <div class="d-flex gap-2">
               <button class="btn btn-success btn-sm flex-fill" onclick="changerStatutEnc('<%= enc._id %>','valide')"><i class="bi bi-check-circle me-1"></i>Valider</button>

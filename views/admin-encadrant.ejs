@@ -32,21 +32,21 @@
         <h5 class="text-success mb-2">Documents</h5>
         <div class="d-flex gap-2 flex-wrap mb-4">
           <% if (encadrant.encadrant?.bafaScan) { %>
-            <a href="/uploads/<%= encadrant.encadrant.bafaScan %>" target="_blank" class="btn btn-outline-info">
+            <a href="<%= encadrant.encadrant.bafaScan %>" target="_blank" class="btn btn-outline-info">
               <i class="bi bi-file-earmark me-1"></i>BAFA / Diplôme
             </a>
           <% } else { %>
             <span class="badge bg-secondary p-2">BAFA non fourni</span>
           <% } %>
           <% if (encadrant.encadrant?.casierJudiciaire) { %>
-            <a href="/uploads/<%= encadrant.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-outline-info">
+            <a href="<%= encadrant.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-outline-info">
               <i class="bi bi-file-earmark me-1"></i>Casier judiciaire
             </a>
           <% } else { %>
             <span class="badge bg-secondary p-2">Casier non fourni</span>
           <% } %>
           <% (encadrant.encadrant?.autresDocuments || []).forEach((doc, i) => { %>
-            <a href="/uploads/<%= doc %>" target="_blank" class="btn btn-outline-secondary">
+            <a href="<%= doc %>" target="_blank" class="btn btn-outline-secondary">
               <i class="bi bi-paperclip me-1"></i>Autre doc <%= i + 1 %>
             </a>
           <% }) %>
