@@ -192,13 +192,30 @@
     <h5 class="text-success mb-3"><i class="bi bi-check-circle me-2"></i>Validés <span class="badge bg-success"><%= validesEnc.length %></span></h5>
     <div class="table-responsive mb-4">
       <table class="table table-striped align-middle">
-        <thead class="table-success"><tr><th>Nom</th><th>Email</th><th>Catégories</th><th>Action</th></tr></thead>
+        <thead class="table-success"><tr><th>Nom</th><th>Email</th><th>Catégories</th><th>Documents</th><th>Action</th></tr></thead>
         <tbody>
           <% validesEnc.forEach(enc => { %>
             <tr>
               <td><strong><%= enc.prenom %> <%= enc.nom %></strong></td>
               <td><%= enc.email %></td>
               <td><% (enc.encadrant?.categories||[]).forEach(c => { %><span class="badge bg-success text-capitalize me-1"><%= c %></span><% }) %></td>
+              <td>
+                <div class="d-flex gap-1 flex-wrap">
+                  <% if (enc.encadrant?.bafaScan) { %>
+                    <a href="<%= enc.encadrant.bafaScan %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>BAFA</a>
+                  <% } else { %>
+                    <span class="badge bg-secondary">BAFA manquant</span>
+                  <% } %>
+                  <% if (enc.encadrant?.casierJudiciaire) { %>
+                    <a href="<%= enc.encadrant.casierJudiciaire %>" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark me-1"></i>Casier</a>
+                  <% } else { %>
+                    <span class="badge bg-secondary">Casier manquant</span>
+                  <% } %>
+                  <% (enc.encadrant?.autresDocuments || []).forEach((doc, i) => { %>
+                    <a href="<%= doc %>" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-paperclip me-1"></i>Doc <%= i+1 %></a>
+                  <% }) %>
+                </div>
+              </td>
               <td><button class="btn btn-sm btn-outline-danger" onclick="changerStatutEnc('<%= enc._id %>','refuse')"><i class="bi bi-x-circle me-1"></i>Révoquer</button></td>
             </tr>
           <% }) %>
