@@ -27,7 +27,7 @@ const utilisateurSchema = new mongoose.Schema({
   ville:       { type: String, trim: true },
   codePostal:  { type: String, match: /^\d{5}$/ },
   telDomicile: String,
-  telPortable: { type: String, required: true, match: /^0[6-7]\d{8}$/ },
+  telPortable: { type: String, required: true, match: /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/ },
 
   // === SECOND RESPONSABLE (rôle parent uniquement) ===
   responsable2: {

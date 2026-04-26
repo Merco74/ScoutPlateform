@@ -34,7 +34,7 @@
             <div class="col-md-6">
               <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
-                       placeholder="06..." pattern="^0[6-7]\d{8}$" required
+                       placeholder="06..." pattern="^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$" required
                        oninput="validerTel(this)">
                 <label for="telPortable">Tél. portable (06/07) *</label>
                 <div class="invalid-feedback">Format attendu : 06XXXXXXXX ou 07XXXXXXXX</div>
@@ -181,7 +181,7 @@
     input.classList.toggle('is-valid',   ok);
   }
   function validerTel(input) {
-    const ok = /^0[6-7]\d{8}$/.test(input.value.replace(/\s/g, ''));
+    const ok = /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(input.value.replace(/\s/g, ''));
     input.classList.toggle('is-invalid', !ok && input.value.length > 0);
     input.classList.toggle('is-valid',   ok);
   }

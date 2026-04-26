@@ -115,18 +115,22 @@ const getAnneeScoute = () => {
 
 /** Détermine la catégorie selon l'âge ET le sexe
  *  Louveteaux/Louvettes : 8-11 ans (tous sexes)
- *  Scouts : 11-17 ans (Masculin)
  *  Guides : 11-17 ans (Féminin)
+ *  Scouts : 12-18 ans (Masculin)
  */
 const getCategorieParAge = (age, sexe) => {
-  if (age >= 8  && age <= 11) return 'louveteau';
-  if (age >= 11 && age <= 17) return sexe === 'Féminin' ? 'guide' : 'scout';
+  if (age >= 8 && age <= 11) return 'louveteau';
+  if (sexe === 'Féminin') {
+    if (age >= 11 && age <= 17) return 'guide';
+  } else {
+    if (age >= 12 && age <= 18) return 'scout';
+  }
   return null;
 };
 
-/** Valide un numéro de téléphone FR (06/07) ou Suisse (+41) */
+/** Valide un numéro de téléphone : 06, 07, +33 ou +41 uniquement */
 const telValide = (tel) =>{
-  return /^(0[6-7]\d{8}|0[1-9]\d{8}|\+41\d{9})$/
+  return /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/
     .test((tel || '').replace(/\s/g, ''))
 }
 
@@ -177,9 +181,8 @@ app.get('/inscription', (req, res) => res.render('inscription', { erreur: null }
 
 app.post('/inscription',
   upload.fields([
-    { name: 'bafaScan',         maxCount: 1 },
-    { name: 'casierJudiciaire', maxCount: 1 },
-    { name: 'autresDocuments',  maxCount: 5 }
+    { name: 'diplomeScan', maxCount: 1 },
+    { name: 'autresDocuments', maxCount: 5 }
   ]),
   async (req, res) => {
     try {
@@ -217,9 +220,19 @@ app.post('/inscription',
         encadrant: demandeEncadrant === 'on' ? {
           categories: req.body.categoriesEncadrant
             ? [].concat(req.body.categoriesEncadrant) : [],
-          bafaScan:         files.bafaScan?.[0]?.path,
-          casierJudiciaire: files.casierJudiciaire?.[0]?.path,
-          autresDocuments:  files.autresDocuments?.map(f => f.path) || [],
+          diplomeScan:     files.diplomeScan?.[0]?.path,
+          diplomeIntitule: sanitize(req.body.diplomeIntitule),
+          secourisme: {
+            psc1:   req.body.secourismeType?.includes('psc1') || req.body.secourismeType === 'psc1-sst',
+            sst:    req.body.secourismeType?.includes('sst') || req.body.secourismeType === 'psc1-sst',
+            autre:  req.body.secourismeAutre || (req.body.secourismeType === 'autre' ? 'Oui' : undefined)
+          },
+          permisConduire: req.body.permisConduire === 'on' ? {
+            possede:    true,
+            categories: req.body.permisCategories ? [].concat(req.body.permisCategories) : [],
+            numero:     sanitize(req.body.permisNumero)
+          } : { possede: false },
+          autresDocuments: files.autresDocuments?.map(f => f.path) || [],
           statut: 'en_attente'
         } : undefined
       });
@@ -376,7 +389,7 @@ app.post('/ajouter-enfant',
       if (!['louveteau', 'scout', 'guide'].includes(categorie))
         return res.render('enfant-form', { parent, enfant: null, erreur: 'Catégorie invalide.' });
 
-      const ageLimits = { louveteau: [8, 11], scout: [11, 17], guide: [11, 17] };
+      const ageLimits = { louveteau: [8, 11], scout: [12, 18], guide: [11, 17] };
       const [min, max] = ageLimits[categorie];
       if (age < min || age > max)
         return res.render('enfant-form', { parent, enfant: null,
@@ -386,6 +399,7 @@ app.post('/ajouter-enfant',
         parentId: req.session.utilisateurId,
         nom: sanitize(req.body.nom), prenom: sanitize(req.body.prenom),
         dateNaissance: dateNaiss, sexe: req.body.sexe, categorie,
+        telPortable: sanitize(req.body.enfantTel),
         autreClub: req.body.autreClub === 'on',
         nomAutreClub: sanitize(req.body.nomAutreClub),
         medecinTraitant: sanitize(req.body.medecinTraitant) || parent.medecinTraitant,
@@ -472,6 +486,7 @@ app.post('/modifier-enfant/:id',
         dateNaissance: new Date(req.body.dateNaissance),
         sexe: req.body.sexe,
         categorie: sanitize(req.body.categorie).toLowerCase(),
+        telPortable: sanitize(req.body.enfantTel),
         autreClub: req.body.autreClub === 'on',
         nomAutreClub: sanitize(req.body.nomAutreClub),
         medecinTraitant: sanitize(req.body.medecinTraitant),
@@ -533,10 +548,10 @@ app.get('/inscrire-enfant/:id', requireAuth, async (req, res) => {
 
     // Vérifie si la fenêtre d'inscription est ouverte
     const now = new Date();
-    if (typeInscription === 'annee' && !config.inscriptionOuverte)
+    /* if (typeInscription === 'annee' && !config.inscriptionOuverte)
       return res.render('erreur', { message: `Les inscriptions pour l'année ${anneeScoute} ne sont pas encore ouvertes.` });
     if (typeInscription === 'camp' && !config.campOuvert)
-      return res.render('erreur', { message: `Les inscriptions pour le camp ne sont pas encore ouvertes.` });
+      return res.render('erreur', { message: `Les inscriptions pour le camp ne sont pas encore ouvertes.` });*/
 
     const periodeLabel = typeInscription === 'camp'
       ? (config.campNom || 'Camp')
@@ -1017,10 +1032,11 @@ async function generateAuthPdf(data, publicId) {
       try {
         const buffer = Buffer.concat(chunks);
         const result = await new Promise((res, rej) => {
-          cloudinary.uploader.upload_stream(
+          const stream = cloudinary.uploader.upload_stream(
             { resource_type: 'raw', public_id: publicId, format: 'pdf', folder: '' },
             (err, r) => err ? rej(err) : res(r)
-          )(buffer);
+          );
+          stream.end(buffer);
         });
         resolve(result.secure_url);
       } catch (err) {
@@ -1061,7 +1077,7 @@ async function generateSanitaryPdf(data, publicId) {
       .text(`Allergies alimentaires : ${data.allergiesAlimentaires ? 'Oui' : 'Non'}`)
       .text(`Allergies médicaments : ${data.allergiesMedicament ? 'Oui' : 'Non'}`)
       .text(data.allergiesDetails ? `Détails : ${data.allergiesDetails}` : '')
-      .text(`Problème de santé : ${data.problemeSante ? `Oui — ${data.problemeSanteDetails || ''}` : 'Non'}`)
+      .text(`Particularité de santé : ${data.problemeSante ? `Oui — ${data.problemeSanteDetails || ''}` : 'Non'}`)
       .text(data.recommandationsParents ? `Recommandations : ${data.recommandationsParents}` : '')
       .moveDown(2);
     if (data.signatureSanitaire) {
@@ -1079,10 +1095,11 @@ async function generateSanitaryPdf(data, publicId) {
       try {
         const buffer = Buffer.concat(chunks);
         const result = await new Promise((res, rej) => {
-          cloudinary.uploader.upload_stream(
+          const stream = cloudinary.uploader.upload_stream(
             { resource_type: 'raw', public_id: publicId, format: 'pdf', folder: '' },
             (err, r) => err ? rej(err) : res(r)
-          )(buffer);
+          );
+          stream.end(buffer);
         });
         resolve(result.secure_url);
       } catch (err) {

@@ -57,7 +57,7 @@
             <select class="form-select" id="categorie" name="categorie" required>
               <option value="">Auto selon âge/sexe</option>
               <option value="louveteau" <%= enfant?.categorie === 'louveteau' ? 'selected' : '' %>>Louveteaux/Louvettes (8-11 ans)</option>
-              <option value="scout"     <%= enfant?.categorie === 'scout'     ? 'selected' : '' %>>Scouts (11-17 ans, Masculin)</option>
+              <option value="scout"     <%= enfant?.categorie === 'scout'     ? 'selected' : '' %>>Scouts (12-18 ans, Masculin)</option>
               <option value="guide"     <%= enfant?.categorie === 'guide'     ? 'selected' : '' %>>Guides (11-17 ans, Féminin)</option>
             </select>
             <label for="categorie">Catégorie *</label>
@@ -67,10 +67,10 @@
           <div class="form-floating-custom">
             <input type="tel" class="form-control" id="enfantTel" name="enfantTel"
                    value="<%= enfant?.telPortable || '' %>"
-                   placeholder="06... ou +41..."
-                   oninput="validerTel(this)">
+                   placeholder="06... +33... ou +41..."
+                   oninput="validerTelEnfant(this)">
             <label for="enfantTel">Tél. de l'enfant (si portable)</label>
-            <div class="invalid-feedback">Format invalide (06/07... ou +41...)</div>
+            <div class="invalid-feedback">Format invalide (06/07/+33/+41)</div>
           </div>
         </div>
 
@@ -118,9 +118,9 @@
           <div class="form-floating-custom">
             <input type="tel" class="form-control" id="contact1Tel" name="contactUrgenceTel"
                    value="<%= enfant?.contactUrgence?.telPortable || '' %>"
-                   placeholder="06... ou +41..." required oninput="validerTel(this)">
-            <label>Tél. portable * (FR ou CH)</label>
-            <div class="invalid-feedback">Format invalide</div>
+                   placeholder="06... +33... ou +41..." required oninput="validerTel(this)">
+            <label>Tél. portable * (06/07/+33/+41)</label>
+            <div class="invalid-feedback">Format invalide ou identique à l'enfant</div>
           </div>
         </div>
         <div class="col-md-6">
@@ -174,9 +174,9 @@
             <div class="form-floating-custom">
               <input type="tel" class="form-control" id="contact2Tel" name="contactUrgenceSecondaireTel"
                      value="<%= enfant?.contactUrgenceSecondaire?.telPortable || '' %>"
-                     placeholder="06... ou +41..." oninput="validerTelSecondaire(this)">
-              <label>Tél. portable (FR ou CH)</label>
-              <div class="invalid-feedback" id="contact2TelError">Format invalide ou identique au contact principal</div>
+                     placeholder="06... +33... ou +41..." oninput="validerTelSecondaire(this)">
+              <label>Tél. portable (06/07/+33/+41)</label>
+              <div class="invalid-feedback" id="contact2TelError">Format invalide ou identique au contact principal ou à l'enfant</div>
             </div>
           </div>
           <div class="col-md-6">
@@ -293,14 +293,15 @@
         </div>
       </div>
 
-      <%# Problème de santé %>
+      <%# Particularité de santé %>
       <div class="mb-3 p-3 bg-light rounded-3">
         <div class="form-check form-switch mb-2">
           <input class="form-check-input" type="checkbox" id="problemeSante" name="problemeSante"
                  <%= enfant?.problemeSante ? 'checked' : '' %>
                  onchange="toggleDetail(this, 'problemeSanteDiv')">
-          <label class="form-check-label fw-bold" for="problemeSante">Problème de santé particulier</label>
+          <label class="form-check-label fw-bold" for="problemeSante">Particularité de santé qu'il est important de porter à la connaissance de l'équipe encadrante ou à minima des directeurs</label>
         </div>
+        <p class="text-muted small mb-2">Ces singularités ne sont pas nécessairement associées à des traitements mais méritent d'être connues pour une meilleure prise en charge en cas de difficultés.</p>
         <div id="problemeSanteDiv" class="<%= enfant?.problemeSante ? '' : 'd-none' %> mt-2">
           <textarea class="form-control" name="problemeSanteDetails" rows="3"
                     placeholder="Asthme, diabète, épilepsie, maladie chronique... Précisez les symptômes et les conduites à tenir."><%= enfant?.problemeSanteDetails || '' %></textarea>
@@ -411,28 +412,47 @@
 <%- include('partials/_footer') %>
 
 <script>
-  // ---- Validation téléphone FR ou Suisse ----
+  // ---- Validation téléphone : 06, 07, +33 ou +41 ----
   function validerTel(input) {
     const val = input.value.replace(/\s/g, '');
-    const ok  = /^(0[0-9]\d{8}|0[6-7]\d{8}|\+41\d{9})$/.test(val);
+    const telEnfant = document.getElementById('enfantTel')?.value.replace(/\s/g, '');
+    const formatOk = /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(val);
+    const differentEnfant = val !== telEnfant;
+    const ok = formatOk && differentEnfant;
     input.classList.toggle('is-invalid', !ok && val.length > 0);
     input.classList.toggle('is-valid',   ok && val.length > 0);
   }
 
-  // ---- Validation contact secondaire (différent du principal) ----
+  // ---- Validation téléphone enfant ----
+  function validerTelEnfant(input) {
+    const val = input.value.replace(/\s/g, '');
+    const ok  = val === '' || /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(val);
+    input.classList.toggle('is-invalid', !ok && val.length > 0);
+    input.classList.toggle('is-valid',   ok && val.length > 0);
+  }
+
+  // ---- Validation contact secondaire (différent du principal et de l'enfant) ----
   function validerTelSecondaire(input) {
     const val      = input.value.replace(/\s/g, '');
     const tel1     = document.getElementById('contact1Tel')?.value.replace(/\s/g, '');
-    const formatOk = /^(0[0-9]\d{8}|0[6-7]\d{8}|\+41\d{9})$/.test(val);
-    const different = val !== tel1;
-    const ok = formatOk && different;
+    const telEnfant = document.getElementById('enfantTel')?.value.replace(/\s/g, '');
+    const formatOk = /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(val);
+    const different1 = val !== tel1;
+    const differentEnfant = val !== telEnfant;
+    const ok = formatOk && different1 && differentEnfant;
     input.classList.toggle('is-invalid', !ok && val.length > 0);
     input.classList.toggle('is-valid',   ok && val.length > 0);
     const errEl = document.getElementById('contact2TelError');
     if (errEl) {
-      errEl.textContent = !formatOk
-        ? 'Format invalide (06/07... ou +41...)'
-        : 'Identique au contact principal';
+      if (!formatOk) {
+        errEl.textContent = 'Format invalide (06/07/+33/+41)';
+      } else if (!different1) {
+        errEl.textContent = 'Identique au contact principal';
+      } else if (!differentEnfant) {
+        errEl.textContent = 'Identique au téléphone de l\'enfant';
+      } else {
+        errEl.textContent = '';
+      }
     }
   }
 
@@ -467,8 +487,10 @@
     const cat = document.getElementById('categorie');
     if (age >= 8 && age <= 11) {
       cat.value = 'louveteau';
-    } else if (age >= 11 && age <= 17) {
-      cat.value = sexe === 'Féminin' ? 'guide' : 'scout';
+    } else if (sexe === 'Féminin' && age >= 11 && age <= 17) {
+      cat.value = 'guide';
+    } else if (sexe === 'Masculin' && age >= 12 && age <= 18) {
+      cat.value = 'scout';
     } else {
       cat.value = '';
     }

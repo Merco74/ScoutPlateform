@@ -17,13 +17,13 @@ const enfantSchema = new mongoose.Schema({
   dateNaissance: { type: Date,   required: true },
   sexe:          { type: String, required: true, enum: ['Masculin', 'Féminin'] },
   // Téléphone de l'enfant (optionnel, si l'enfant possède un portable)
-  telPortable:   String,
+  telPortable:   { type: String, match: /^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})?$/ },
 
   // === CATÉGORIE SCOUT ===
   // Calculée selon l'âge ET le sexe :
   //   Louveteaux/Louvettes : 8-11 ans (tous sexes)
-  //   Scouts : 11-17 ans (Masculin)
   //   Guides : 11-17 ans (Féminin)
+  //   Scouts : 12-18 ans (Masculin)
   categorie: {
     type:     String,
     required: true,

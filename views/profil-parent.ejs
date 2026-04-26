@@ -35,7 +35,7 @@
             <div class="col-md-6">
               <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
-                       value="<%= parent.telPortable %>" pattern="^0[6-7]\d{8}$" required
+                       value="<%= parent.telPortable %>" pattern="^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$" required
                        oninput="validerTel(this)">
                 <label for="telPortable">Tél. portable *</label>
                 <div class="invalid-feedback">Format : 06XXXXXXXX</div>
@@ -159,7 +159,7 @@
 <%- include('partials/_footer') %>
 
 <script>
-  function validerTel(i)     { const ok=/^0[6-7]\d{8}$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerTel(i)     { const ok=/^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerCP(i)      { const ok=/^\d{5}$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerMDP(i)     { const ok=i.value.length>=8; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerConfirm(i) { const ok=i.value===document.getElementById('nouveauMotDePasse').value; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }

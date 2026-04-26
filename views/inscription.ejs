@@ -34,9 +34,9 @@
             <div class="col-md-6">
               <div class="form-floating-custom">
                 <input type="tel" class="form-control" id="telPortable" name="telPortable"
-                       pattern="^0[6-7]\d{8}$" required oninput="validerTel(this)">
-                <label for="telPortable">Tél. portable (06/07) *</label>
-                <div class="invalid-feedback">Format : 06XXXXXXXX</div>
+                       pattern="^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$" required oninput="validerTel(this)">
+                <label for="telPortable">Tél. portable (06/07/+33/+41) *</label>
+                <div class="invalid-feedback">Format : 06XXXXXXXX, 07XXXXXXXX, +33XXXXXXXXX ou +41XXXXXXXXX</div>
               </div>
             </div>
             <div class="col-md-6">
@@ -122,7 +122,7 @@
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="scout" id="catScout">
-                  <label class="form-check-label" for="catScout">Scouts (11-17 ans, Masculin)</label>
+                  <label class="form-check-label" for="catScout">Scouts (12-18 ans, Masculin)</label>
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="categoriesEncadrant" value="guide" id="catGuide">
@@ -235,7 +235,7 @@
 
 <script>
   function validerEmail(i)  { const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
-  function validerTel(i)    { const ok=/^0[6-7]\d{8}$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
+  function validerTel(i)    { const ok=/^(06\d{8}|07\d{8}|\+33\d{9}|\+41\d{9})$/.test(i.value.replace(/\s/g,'')); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerCP(i)     { const ok=/^\d{5}$/.test(i.value); i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerMDP(i)    { const ok=i.value.length>=8; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
   function validerConfirm(i){ const ok=i.value===document.getElementById('motDePasse').value; i.classList.toggle('is-invalid',!ok&&i.value.length>0); i.classList.toggle('is-valid',ok); }
